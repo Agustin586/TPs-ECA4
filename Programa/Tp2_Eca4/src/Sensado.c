@@ -13,7 +13,34 @@
 #include "freertos/task.h"
 
 //............................................................................
-//                          PROTOTIPO DE FUNCIONES
+//                              VARIABLES PRIVADAS
+//............................................................................
+typedef struct
+{
+    uint16_t luz;         // Variable de luz medida
+    uint16_t temperatura; // Variable de temperatura medida
+    uint16_t humedad;     // Variable de humedad medida
+} VariablesEntrada;
+
+typedef struct
+{
+    int rele; // Estado del relé (0: apagado, 1: encendido)
+    int pwm;  // Ciclo de trabajo del PWM (0-100%)
+} VariablesSalida;
+
+typedef struct
+{
+    VariablesEntrada entradas; // Estructura que agrupa las entradas
+    VariablesSalida salidas;   // Estructura que agrupa las salidas
+} SistemaControl_t;
+
+SistemaControl_t sistema = {
+    .entradas = {0, 0, 0}, // Inicializa entradas a 0
+    .salidas = {0, 0}      // Inicializa salidas a 0
+};
+
+//............................................................................
+//                      PROTOTIPO DE FUNCIONES PRIVADAS
 //............................................................................
 /**
  * @brief Inicialización de las tareas de freertos.
@@ -47,6 +74,21 @@ extern void Sensado_init(void)
     vTaskStartScheduler(); // Incializa el scheduler.
 
     return;
+}
+//............................................................................
+extern uint16_t Sensado_Temp(void)
+{
+    return sistema.entradas.temperatura;
+}
+//............................................................................
+extern uint16_t Sensado_Humd(void)
+{
+    return sistema.entradas.humedad;
+}
+//............................................................................
+extern uint16_t Sensado_Luz(void)
+{
+    return sistema.entradas.luz;
 }
 
 //............................................................................
