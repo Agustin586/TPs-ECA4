@@ -1,3 +1,17 @@
+# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.0.0)
+set(toolchainVersion 13_2_Rel1)
+set(picotoolVersion 2.0.0)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 # Generated Cmake Pico project file
 
 cmake_minimum_required(VERSION 3.13)
@@ -35,13 +49,17 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Gen_Func Gen_Func.c )
+add_executable(Gen_Func Gen_Func.c 
+    src/awg.c)
 
 pico_set_program_name(Gen_Func "Gen_Func")
 pico_set_program_version(Gen_Func "0.1")
 
 # Generate PIO header
 pico_generate_pio_header(Gen_Func ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
+
+# Directorios para los headers
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Gen_Func 0)
@@ -57,7 +75,24 @@ target_include_directories(Gen_Func PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
 
-# Add any user requested libraries
+# FreeRTOS paths
+set(FREERTOS_PATH ${CMAKE_CURRENT_LIST_DIR}/FreeRTOS-Kernel)
+include_directories(${FREERTOS_PATH}/include)
+include_directories(${FREERTOS_PATH}/portable/GCC/ARM_CM0)
+
+# Add FreeRTOS source files
+target_sources(Gen_Func PRIVATE
+  ${FREERTOS_PATH}/croutine.c
+  ${FREERTOS_PATH}/list.c
+  ${FREERTOS_PATH}/queue.c
+  ${FREERTOS_PATH}/tasks.c
+  ${FREERTOS_PATH}/timers.c
+  ${FREERTOS_PATH}/event_groups.c
+  ${FREERTOS_PATH}/portable/MemMang/heap_4.c
+  ${FREERTOS_PATH}/portable/GCC/ARM_CM0/port.c
+)
+
+# Link FreeRTOS to your project
 target_link_libraries(Gen_Func 
         hardware_spi
         hardware_i2c
@@ -70,4 +105,3 @@ target_link_libraries(Gen_Func
         )
 
 pico_add_extra_outputs(Gen_Func)
-

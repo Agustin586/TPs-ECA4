@@ -101,6 +101,14 @@ BSP_TICKS_PER_SEC/2, BSP_TICKS_PER_SEC/2);</action>
  <package name="AOs_Awg" stereotype="0x02">
   <!--${AOs_Awg::Awg}-->
   <class name="Awg" superclass="qpc::QActive">
+   <!--${AOs_Awg::Awg::time1segEvt}-->
+   <attribute name="time1segEvt" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <!--${AOs_Awg::Awg::Awg_ctor}-->
+   <operation name="Awg_ctor" type="void" visibility="0x00" properties="0x00">
+    <code>Awg * const me = &amp;Awg_inst;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
+QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);</code>
+   </operation>
    <!--${AOs_Awg::Awg::SM}-->
    <statechart properties="0x00">
     <!--${AOs_Awg::Awg::SM::initial}-->
@@ -273,12 +281,64 @@ awg_display();</entry>
       <exit box="1,8,13,4"/>
      </state_glyph>
     </state>
-    <state_diagram size="80,96"/>
+    <state_diagram size="84,96"/>
    </statechart>
   </class>
+  <!--${AOs_Awg::setEvt_Econder}-->
+  <operation name="setEvt_Econder" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de encoder</documentation>
+   <code>// Crear el evento ENCODER y enviarlo
+//QEvt *encoder_evt = Q_NEW(QEvt, ENCODER_SIG);  // Crear el evento con la señal ENCODER_SIG
+
+// Enviar el evento a la máquina de estados activa (AO: Active Object)
+QACTIVE_POST(Awg_inst, &amp;encoder_evt, 0);</code>
+  </operation>
+  <!--${AOs_Awg::confirm_evt}-->
+  <attribute name="confirm_evt" type="QEvt" visibility="0x00" properties="0x00">
+   <code>= {CONFIRM_SIG, 0 , 0};</code>
+  </attribute>
+  <!--${AOs_Awg::setEvt_Confirm}-->
+  <operation name="setEvt_Confirm" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de confirmacion</documentation>
+   <code>QACTIVE_POST(Awg_inst, &amp;confirm_evt, 0);</code>
+  </operation>
+  <!--${AOs_Awg::inst}-->
+  <attribute name="inst" type="Awg" visibility="0x00" properties="0x00"/>
+  <!--${AOs_Awg::AwgSignals}-->
+  <attribute name="AwgSignals" type="enum" visibility="0x00" properties="0x00">
+   <code>{
+    ENCODER_SIG = Q_USER_SIG,
+    INIT_SIG,
+    AVANC,
+    CONFIRM,
+    TIMER_1SEG_SIG,
+};</code>
+  </attribute>
+  <!--${AOs_Awg::encoder_evt}-->
+  <attribute name="encoder_evt" type="QEvt" visibility="0x00" properties="0x00">
+   <code>= {ENCODER_SIG, 0 ,0};</code>
+  </attribute>
+  <!--${AOs_Awg::init_evt}-->
+  <attribute name="init_evt" type="QEvt" visibility="0x00" properties="0x00">
+   <code>= {INIT_SIG, 0, 0};</code>
+  </attribute>
+  <!--${AOs_Awg::setEvt_Init}-->
+  <operation name="setEvt_Init" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de init</documentation>
+   <code>QACTIVE_POST(Awg_inst, &amp;init_evt, 0);</code>
+  </operation>
+  <!--${AOs_Awg::avanc_evt}-->
+  <attribute name="avanc_evt" type="QEvt" visibility="0x00" properties="0x00">
+   <code>= {AVANC_SIG, 0, 0};</code>
+  </attribute>
+  <!--${AOs_Awg::setEvt_Avanc}-->
+  <operation name="setEvt_Avanc" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de avance</documentation>
+   <code>QACTIVE_POST(Awg_inst, &amp;avanc_evt, 0);</code>
+  </operation>
  </package>
  <!--${AOs_Display}-->
- <package name="AOs_Display" stereotype="0x00">
+ <package name="AOs_Display" stereotype="0x02">
   <!--${AOs_Display::Display}-->
   <class name="Display" superclass="qpc::QActive">
    <!--${AOs_Display::Display::SM}-->
@@ -295,7 +355,7 @@ awg_display();</entry>
      <entry>display_reset();</entry>
      <!--${AOs_Display::Display::SM::Reset::INIT}-->
      <tran trig="INIT" target="../../2">
-      <tran_glyph conn="44,16,2,0,2,0,2">
+      <tran_glyph conn="44,16,2,0,4">
        <action box="0,1,10,2"/>
       </tran_glyph>
      </tran>
@@ -467,8 +527,11 @@ $declare ${Shared}
    <text>// Board Support Package implementation for desktop OS (Windows, Linux, MacOS)
 #include &quot;qpc.h&quot;    // QP/C real-time embedded framework
 #include &quot;bsp.h&quot;    // Board Support Package interface
+#include &quot;mef_awg.h&quot;
 #include &lt;stdio.h&gt;  // for printf()/fprintf()
 #include &lt;stdlib.h&gt; // for exit()
+
+void assert_failed(char const * const module, int_t const id); // prototype
 
 //............................................................................
 void BSP_init(void)   {
@@ -479,23 +542,35 @@ void BSP_init(void)   {
 }
 //............................................................................
 void BSP_start(void) {
-    // no need to initialize event pools
-    //static QF_MPOOL_EL(QEvt) smlPoolSto[10];
-    //QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    // initialize event pools
+    static QF_MPOOL_EL(QEvt) smlPoolSto[10];
+    QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // no need to initialize publish-subscribe
     //QActive_psInit(subscrSto, Q_DIM(subscrSto));
 
     // instantiate and start AOs/threads...
 
-    static QEvt const *blinkyQueueSto[10];
-    Blinky_ctor();
-    QACTIVE_START(AO_Blinky,
-        1U,                          // QP prio. of the AO
-        blinkyQueueSto,              // event queue storage
-        Q_DIM(blinkyQueueSto),       // queue length [events]
-        (void *)0, 0U,               // no stack storage
-        (void *)0);                  // no initialization param
+    //static QEvt const *blinkyQueueSto[10];
+    //Blinky_ctor();
+    //QACTIVE_START(AO_Blinky,
+    //    1U,                          // QP prio. of the AO
+    //    blinkyQueueSto,              // event queue storage
+    //    Q_DIM(blinkyQueueSto),       // queue length [events]
+    //    (void *)0, 0U,               // no stack storage
+    //    (void *)0);                  // no initialization param
+
+    static QEvt const *awgQueueSto[10];
+    Awg_ctor();
+    QACTIVE_START(AO_Awg_Awg,
+        2U,                                  // QP prio. of the AO
+        awgQueueSto,                         // event queue storage
+        Q_DIM(awgQueueSto),                  // queue length [events]
+        512,                                 // stack para la tarea
+        sizeof(configMINIMAL_STACK_SIZE),    // stack in bytes
+        (void *)0);                          // no initialization param
+
+    return;
 }
 //............................................................................
 void BSP_ledOff(void) { printf(&quot;LED OFF\n&quot;); }
@@ -505,12 +580,47 @@ void BSP_ledOn(void)  { printf(&quot;LED ON\n&quot;);  }
 // callback functions needed by the framework --------------------------------
 void QF_onStartup(void) {}
 void QF_onCleanup(void) {}
-void QF_onClockTick(void) {
-    QF_TICK_X(0U, (void *)0); // QF clock tick processing for rate 0
+void assert_failed(char const * const module, int_t const id) {
+    Q_onError(module, id);
 }
 void Q_onError(char const * const module, int id) {
     fprintf(stderr, &quot;Assertion failed in %s:%d&quot;, module, id);
-    exit(-1);
+    // NOTE: this implementation of the error handler is intended only
+    // for debugging and MUST be changed for deployment of the application
+    // (assuming that you ship your production code with assertions enabled).
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
+#ifndef NDEBUG
+    // for debugging, hang on in an endless loop...
+    for (;;) {
+    }
+#else
+    NVIC_SystemReset();
+    for (;;) { // explicitly &quot;no-return&quot;
+    }
+#endif
+}
+// callback functions needed by the freertos ---------------------------------
+void vApplicationTickHook(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    QTIMEEVT_TICK_FROM_ISR(0U, &amp;xHigherPriorityTaskWoken, &amp;l_TickHook);
+
+    QF_TICK_X(0U, (void *)0);  // Indica a QP que procese el tick
+
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+//............................................................................
+void vApplicationMallocFailedHook(void) {
+    // Hook vacío
+}
+//............................................................................
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+    Q_ERROR();
 }</text>
   </file>
   <!--${.::blinky.c}-->
@@ -529,6 +639,7 @@ $define ${AOs::Blinky}</text>
   <file name="main.c">
    <text>#include &quot;qpc.h&quot;                 // QP/C real-time embedded framework
 #include &quot;bsp.h&quot;                 // Board Support Package
+#include &quot;mef_awg.h&quot;
 
 //............................................................................
 int main() {
@@ -798,6 +909,25 @@ show :
     @echo LIBS         = $(LIBS)
     @echo DEFINES      = $(DEFINES)
 </text>
+  </file>
+  <!--${.::mef_awg.h}-->
+  <file name="mef_awg.h">
+   <text>#ifndef MEF_AWG_H_
+#define MEF_AWG_H_
+
+$declare ${AOs_Awg} 
+
+#endif </text>
+  </file>
+  <!--${.::mef_awg.c}-->
+  <file name="mef_awg.c">
+   <text>#include &quot;mef_awg.h&quot;
+
+$declare ${AOs_Awg::Awg}
+
+$define ${AOs_Awg::Awg} 
+
+$define ${AOs_Awg} </text>
   </file>
  </directory>
 </model>
