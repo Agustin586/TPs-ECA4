@@ -1,0 +1,1006 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model version="6.2.3" links="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.state-machine.com/qm/qm.xsd">
+ <documentation>About this example:
+-------------------
+Simple &quot;Blinky&quot; console application for workstations (Windows, Linux, MacOS)
+(see &quot;QM Tutorial&quot; at: https://www.state-machine.com/qm/gs_tut.html)
+
+This example demonstrates:
+- Active object (Blinky) with state machine
+- Board Support Package abstraction for portability
+- BSP implementation for desktop OS (Windows, Linux, MacOS)
+- Platform-independent main() function
+- Makefile to build the generated code on desktop OS (Windows, Linux, MacOS)
+- Customized tools for building the generated code directly from QM
+
+Building the example:
+---------------------
+To build this example, you will need the QP/C framework installed on your computer and the GNU-GCC compiler. Both of them will be available if you install the QP-bundle from:
+
+https://www.state-machine.com/#Downloads
+
+Running the example:
+--------------------
+This example is a simple console application, which you can run from a terminal.
+
+For more QM examples for QP/C see:
+https://www.state-machine.com/qpc/exa.html</documentation>
+ <!--${qpc}-->
+ <framework name="qpc"/>
+ <!--${Shared}-->
+ <package name="Shared" stereotype="0x00">
+  <!--${Shared::BlinkySignals}-->
+  <attribute name="BlinkySignals" type="enum" visibility="0x04" properties="0x00">
+   <code>{
+    TIMEOUT_SIG = Q_USER_SIG,
+};</code>
+  </attribute>
+  <!--${Shared::AO_Blinky}-->
+  <attribute name="AO_Blinky" type="QActive * const" visibility="0x00" properties="0x00">
+   <code>= &amp;Blinky_inst.super;</code>
+  </attribute>
+  <!--${Shared::Blinky_ctor}-->
+  <operation name="Blinky_ctor" type="void" visibility="0x00" properties="0x01">
+   <documentation>The Blinky &quot;constructor&quot; is provided outside of the Blinky class, so that it can be used independently from the class. This is part of the &quot;opaque pointer&quot; design idiom.</documentation>
+   <code>Blinky * const me = &amp;Blinky_inst;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Blinky_initial));
+QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
+  </operation>
+ </package>
+ <!--${AOs}-->
+ <package name="AOs" stereotype="0x02">
+  <!--${AOs::Blinky}-->
+  <class name="Blinky" superclass="qpc::QActive">
+   <!--${AOs::Blinky::timeEvt}-->
+   <attribute name="timeEvt" type="QTimeEvt" visibility="0x02" properties="0x00"/>
+   <!--${AOs::Blinky::inst}-->
+   <attribute name="inst" type="Blinky" visibility="0x00" properties="0x01"/>
+   <!--${AOs::Blinky::SM}-->
+   <statechart properties="0x03">
+    <documentation>Blinky state machine</documentation>
+    <!--${AOs::Blinky::SM::initial}-->
+    <initial target="../1">
+     <action>(void)par; // unused parameter
+QTimeEvt_armX(&amp;me-&gt;timeEvt,
+BSP_TICKS_PER_SEC/2, BSP_TICKS_PER_SEC/2);</action>
+     <initial_glyph conn="2,3,5,1,20,4,-4">
+      <action box="0,-2,6,2"/>
+     </initial_glyph>
+    </initial>
+    <!--${AOs::Blinky::SM::off}-->
+    <state name="off">
+     <entry>BSP_ledOff();</entry>
+     <!--${AOs::Blinky::SM::off::TIMEOUT}-->
+     <tran trig="TIMEOUT" target="../../2">
+      <tran_glyph conn="2,13,3,1,18,6,-2">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="2,5,16,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <!--${AOs::Blinky::SM::on}-->
+    <state name="on">
+     <entry>BSP_ledOn();</entry>
+     <!--${AOs::Blinky::SM::on::TIMEOUT}-->
+     <tran trig="TIMEOUT" target="../../1">
+      <tran_glyph conn="2,25,3,1,20,-15,-4">
+       <action box="0,-2,8,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="2,17,16,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="74,53"/>
+   </statechart>
+  </class>
+ </package>
+ <!--${AOs_Awg}-->
+ <package name="AOs_Awg" stereotype="0x02">
+  <!--${AOs_Awg::Awg}-->
+  <class name="Awg" superclass="qpc::QActive">
+   <!--${AOs_Awg::Awg::time1segEvt}-->
+   <attribute name="time1segEvt" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <!--${AOs_Awg::Awg::inst}-->
+   <attribute name="inst" type="Awg" visibility="0x00" properties="0x01"/>
+   <!--${AOs_Awg::Awg::avanc_evt}-->
+   <attribute name="avanc_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de avance declaro estatico</documentation>
+    <code>= QEVT_INITIALIZER(AVANC_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::encoder_evt}-->
+   <attribute name="encoder_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de encoder declarado estatico</documentation>
+    <code>= QEVT_INITIALIZER(ENCODER_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::init_evt}-->
+   <attribute name="init_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de init estatico</documentation>
+    <code>= QEVT_INITIALIZER(INIT_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::confirm_evt}-->
+   <attribute name="confirm_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de confirmacion estatico</documentation>
+    <code>= QEVT_INITIALIZER(CONFIRM_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::SM}-->
+   <statechart properties="0x00">
+    <!--${AOs_Awg::Awg::SM::initial}-->
+    <initial target="../1">
+     <action brief="init"/>
+     <initial_glyph conn="19,2,5,0,22,4">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <!--${AOs_Awg::Awg::SM::Reset}-->
+    <state name="Reset">
+     <entry>awg_reset();</entry>
+     <!--${AOs_Awg::Awg::SM::Reset::INIT}-->
+     <tran trig="INIT" target="../../2">
+      <tran_glyph conn="41,16,2,0,7">
+       <action box="1,1,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="31,6,20,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <!--${AOs_Awg::Awg::SM::Configuracion}-->
+    <state name="Configuracion">
+     <!--${AOs_Awg::Awg::SM::Configuracion::initial}-->
+     <initial target="../1">
+      <initial_glyph conn="14,27,5,0,6,2">
+       <action box="0,-2,10,2"/>
+      </initial_glyph>
+     </initial>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}-->
+     <state name="Tipo_Func">
+      <documentation>Se elije el tipo de senial</documentation>
+      <entry>awg_resetEnc();</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}-->
+      <tran trig="AVANC" target="../../2">
+       <tran_glyph conn="27,34,1,3,5">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Func();</action>
+       <tran_glyph conn="13,40,3,-1,11">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="13,29,14,13">
+       <entry box="1,2,13,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Freq}-->
+     <state name="Freq">
+      <documentation>Se configura la frecuencia</documentation>
+      <entry>awg_resetEnc();</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}-->
+      <tran trig="AVANC" target="../../3">
+       <tran_glyph conn="46,34,1,3,5">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Freq();</action>
+       <tran_glyph conn="32,40,3,-1,11">
+        <action box="0,-4,11,4"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="32,29,14,13">
+       <entry box="1,2,13,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud}-->
+     <state name="Amplitud">
+      <documentation>Se configura la amplitud de la funcion</documentation>
+      <entry>awg_resetEnc();</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}-->
+      <tran trig="AVANC" target="../../4">
+       <tran_glyph conn="65,34,1,1,3,15,-2">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Amp();</action>
+       <tran_glyph conn="51,40,3,-1,11">
+        <action box="0,-4,11,4"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="51,29,14,13">
+       <entry box="1,2,13,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Offset}-->
+     <state name="Offset">
+      <documentation>Se configura el offset de la funcion</documentation>
+      <entry>awg_resetEnc();</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Offset();</action>
+       <tran_glyph conn="52,55,3,-1,12">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::AVANC}-->
+      <tran trig="AVANC" target="../../5">
+       <tran_glyph conn="52,50,3,1,-6">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="52,44,14,13">
+       <entry box="1,2,13,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config}-->
+     <state name="Confirm_config">
+      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}-->
+      <tran trig="CONFIRM">
+       <action>awg_enableOutput();</action>
+       <tran_glyph conn="30,56,3,-1,12">
+        <action box="0,-4,17,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC}-->
+      <tran trig="AVANC">
+       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}-->
+       <choice target="../../../../3">
+        <guard brief="fin_config==1">awg_reconfig() == 1</guard>
+        <choice_glyph conn="19,50,4,0,9,24,2">
+         <action box="1,9,11,2"/>
+        </choice_glyph>
+       </choice>
+       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}-->
+       <choice target="../../../1">
+        <guard brief="fin_config==0">awg_reconfig() == 0</guard>
+        <choice_glyph conn="19,50,4,2,-8">
+         <action box="0,-5,12,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="30,50,3,-1,-11">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="30,44,16,13"/>
+     </state>
+     <state_glyph node="11,23,59,35"/>
+    </state>
+    <!--${AOs_Awg::Awg::SM::Salida}-->
+    <state name="Salida">
+     <entry>awg_start();
+//awg_display();</entry>
+     <exit>awg_ledOff();</exit>
+     <!--${AOs_Awg::Awg::SM::Salida::TIMER_1SEG}-->
+     <tran trig="TIMER_1SEG">
+      <action>awg_blink();</action>
+      <tran_glyph conn="31,78,3,-1,12">
+       <action box="0,-4,15,4"/>
+      </tran_glyph>
+     </tran>
+     <!--${AOs_Awg::Awg::SM::Salida::AVANC}-->
+     <tran trig="AVANC" target="../../2/1">
+      <action>awg_stop();</action>
+      <tran_glyph conn="42,79,2,3,3,-34,-48,5">
+       <action box="-25,-1,12,4"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="31,61,23,18">
+      <entry box="1,2,13,6"/>
+      <exit box="1,8,13,4"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="84,96"/>
+   </statechart>
+  </class>
+ </package>
+ <!--${AOs_Display}-->
+ <package name="AOs_Display" stereotype="0x02">
+  <!--${AOs_Display::Display}-->
+  <class name="Display" superclass="qpc::QActive">
+   <!--${AOs_Display::Display::SM}-->
+   <statechart properties="0x00">
+    <!--${AOs_Display::Display::SM::initial}-->
+    <initial target="../1">
+     <action brief="init_display"/>
+     <initial_glyph conn="32,3,5,0,12,4">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <!--${AOs_Display::Display::SM::Reset}-->
+    <state name="Reset">
+     <entry>display_reset();</entry>
+     <!--${AOs_Display::Display::SM::Reset::INIT}-->
+     <tran trig="INIT" target="../../2">
+      <tran_glyph conn="44,16,2,0,4">
+       <action box="0,1,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="35,7,18,9">
+      <entry box="1,2,13,4"/>
+     </state_glyph>
+    </state>
+    <!--${AOs_Display::Display::SM::Page_init}-->
+    <state name="Page_init">
+     <entry>display_pageInit();</entry>
+     <!--${AOs_Display::Display::SM::Page_init::initial}-->
+     <initial target="../1">
+      <initial_glyph conn="13,27,5,0,7,2">
+       <action box="0,-2,10,2"/>
+      </initial_glyph>
+     </initial>
+     <!--${AOs_Display::Display::SM::Page_init::Tipo_Func}-->
+     <state name="Tipo_Func">
+      <entry>display_resetEnc();</entry>
+      <!--${AOs_Display::Display::SM::Page_init::Tipo_Func::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>display_func();</action>
+       <tran_glyph conn="13,41,3,-1,11">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Display::Display::SM::Page_init::Tipo_Func::AVANC}-->
+      <tran trig="AVANC" target="../../2">
+       <tran_glyph conn="29,37,1,3,5">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="13,29,16,13">
+       <entry box="1,2,15,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Display::Display::SM::Page_init::Freq}-->
+     <state name="Freq">
+      <entry>display_resetEnc();</entry>
+      <!--${AOs_Display::Display::SM::Page_init::Freq::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>display_freq();</action>
+       <tran_glyph conn="34,41,3,-1,11">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Display::Display::SM::Page_init::Freq::AVANC}-->
+      <tran trig="AVANC" target="../../3">
+       <tran_glyph conn="50,37,1,3,5">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="34,29,16,13">
+       <entry box="1,2,15,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Display::Display::SM::Page_init::Amp}-->
+     <state name="Amp">
+      <entry>display_resetEnc();</entry>
+      <!--${AOs_Display::Display::SM::Page_init::Amp::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>display_Amp();</action>
+       <tran_glyph conn="55,41,3,-1,13">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Display::Display::SM::Page_init::Amp::AVANC}-->
+      <tran trig="AVANC" target="../../4">
+       <tran_glyph conn="72,37,1,1,5,16,-4">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="55,29,17,13">
+       <entry box="1,2,15,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Display::Display::SM::Page_init::Offset}-->
+     <state name="Offset">
+      <entry>display_resetEnc();</entry>
+      <!--${AOs_Display::Display::SM::Page_init::Offset::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>display_offset();</action>
+       <tran_glyph conn="56,58,3,-1,13">
+        <action box="0,-4,13,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Display::Display::SM::Page_init::Offset::AVANC}-->
+      <tran trig="AVANC" target="../../5">
+       <tran_glyph conn="56,53,3,1,-6">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="56,45,17,14">
+       <entry box="1,2,15,5"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Display::Display::SM::Page_init::Confirma_config}-->
+     <state name="Confirma_config">
+      <!--${AOs_Display::Display::SM::Page_init::Confirma_config::CONFIRM}-->
+      <tran trig="CONFIRM">
+       <action>display_enableOutpu();</action>
+       <tran_glyph conn="32,58,3,-1,15">
+        <action box="0,-4,18,6"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Display::Display::SM::Page_init::Confirma_config::AVANC}-->
+      <tran trig="AVANC">
+       <!--${AOs_Display::Display::SM::Page_init::Confirma_config::AVANC::[fin_config==1]}-->
+       <choice target="../../../../3">
+        <guard brief="fin_config==1"/>
+        <choice_glyph conn="21,52,4,0,12,22,3">
+         <action box="1,10,12,2"/>
+        </choice_glyph>
+       </choice>
+       <!--${AOs_Display::Display::SM::Page_init::Confirma_config::AVANC::[fin_config==0]}-->
+       <choice target="../../../1">
+        <guard brief="fin_config==0"/>
+        <choice_glyph conn="21,52,5,2,-4,-10">
+         <action box="-4,-7,11,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="32,52,3,-1,-11">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="32,45,18,14"/>
+     </state>
+     <state_glyph node="9,20,69,41">
+      <entry box="1,2,15,5"/>
+     </state_glyph>
+    </state>
+    <!--${AOs_Display::Display::SM::Salida}-->
+    <state name="Salida">
+     <entry>display_Output();</entry>
+     <!--${AOs_Display::Display::SM::Salida::CONFIRM}-->
+     <tran trig="CONFIRM" target="../../2/1">
+      <tran_glyph conn="43,77,2,3,3,-37,-45,7">
+       <action box="-10,1,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="32,67,21,10">
+      <entry box="1,2,14,5"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="83,94"/>
+   </statechart>
+  </class>
+ </package>
+ <!--${Shared_Awg}-->
+ <package name="Shared_Awg" stereotype="0x00">
+  <!--${Shared_Awg::setEvt_Econder}-->
+  <operation name="setEvt_Econder" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de encoder</documentation>
+   <code>// Crear el evento ENCODER y enviarlo
+//QEvt *encoder_evt = Q_NEW(QEvt, ENCODER_SIG);  // Crear el evento con la señal ENCODER_SIG
+
+// Enviar el evento a la máquina de estados activa (AO: Active Object)
+//QACTIVE_POST(AO_Awg, &amp;Awg_encoder_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Confirm}-->
+  <operation name="setEvt_Confirm" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de confirmacion</documentation>
+   <code>//QACTIVE_POST(AO_Awg, &amp;Awg_confirm_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Init}-->
+  <operation name="setEvt_Init" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de init</documentation>
+   <code>//QACTIVE_POST(AO_Awg, &amp;Awg_init_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::Awg_ctor}-->
+  <operation name="Awg_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>Constructor del objeto activo awg</documentation>
+   <code>Awg * const me = &amp;Awg_inst;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
+//QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Avanc}-->
+  <operation name="setEvt_Avanc" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de avance</documentation>
+   <code>//QACTIVE_POST(AO_Awg, &amp;Awg_avanc_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::AwgSignals}-->
+  <attribute name="AwgSignals" type="enum" visibility="0x04" properties="0x00">
+   <documentation>Señales del objeto activo Awg</documentation>
+   <code>{
+    ENCODER_SIG = Q_USER_SIG,
+    INIT_SIG,
+    AVANC_SIG,
+    CONFIRM_SIG,
+    TIMER_1SEG_SIG,
+};</code>
+  </attribute>
+  <!--${Shared_Awg::AO_Awg}-->
+  <attribute name="AO_Awg" type="QActive * const" visibility="0x00" properties="0x00">
+   <documentation>Instancia del objeto activo Awg</documentation>
+   <code>= &amp;Awg_inst.super;</code>
+  </attribute>
+ </package>
+ <!--${.}-->
+ <directory name=".">
+  <!--${.::bsp.h}-->
+  <file name="bsp.h">
+   <text>#ifndef BSP_H_
+#define BSP_H_
+
+#define BSP_TICKS_PER_SEC    100U
+
+void BSP_init(void);
+void BSP_start(void);
+void BSP_ledOn(void);
+void BSP_ledOff(void);
+
+$declare ${Shared}
+
+#endif // BSP_H_</text>
+  </file>
+  <!--${.::bsp.c}-->
+  <file name="bsp.c">
+   <text>// Board Support Package implementation for desktop OS (Windows, Linux, MacOS)
+#include &quot;qpc.h&quot;    // QP/C real-time embedded framework
+#include &quot;bsp.h&quot;    // Board Support Package interface
+#include &quot;mef_awg.h&quot;
+#include &quot;qsafe.h&quot;
+#include &lt;stdio.h&gt;  // for printf()/fprintf()
+#include &lt;stdlib.h&gt; // for exit()
+
+void assert_failed(char const * const module, int_t const id); // prototype
+
+//............................................................................
+void BSP_init(void)   {
+    printf(&quot;Simple Blinky example\n&quot;
+           &quot;QP/C version: %s\n&quot;
+           &quot;Press Ctrl-C to quit...\n&quot;,
+           QP_VERSION_STR);
+}
+//............................................................................
+void BSP_start(void) {
+    // initialize event pools
+    static QF_MPOOL_EL(QEvt) smlPoolSto[10];
+    QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+
+    // no need to initialize publish-subscribe
+    //QActive_psInit(subscrSto, Q_DIM(subscrSto));
+
+    // instantiate and start AOs/threads...
+
+
+    static QEvt const *blinkyQueueSto[10];
+    Blinky_ctor();
+    QACTIVE_START(AO_Blinky,
+        1U,                          // QP prio. of the AO
+        blinkyQueueSto,              // event queue storage
+        Q_DIM(blinkyQueueSto),       // queue length [events]
+        (void *)0, 0U,               // no stack storage
+        (void *)0);                  // no initialization param
+
+/*    static QEvt const *awgQueueSto[10];
+    Awg_ctor();
+    QACTIVE_START(AO_Awg,
+        2U,                                  // QP prio. of the AO
+        awgQueueSto,                         // event queue storage
+        Q_DIM(awgQueueSto),                  // queue length [events]
+        512,                                 // stack para la tarea
+        sizeof(configMINIMAL_STACK_SIZE),    // stack in bytes
+        (void *)0);                          // no initialization param
+*/
+    return;
+}
+//............................................................................
+void BSP_ledOff(void) { printf(&quot;LED OFF\n&quot;); }
+//............................................................................
+void BSP_ledOn(void)  { printf(&quot;LED ON\n&quot;);  }
+
+// callback functions needed by the framework --------------------------------
+void QF_onStartup(void) {}
+void QF_onCleanup(void) {}
+void assert_failed(char const * const module, int_t const id) {
+    Q_onError(module, id);
+}
+
+// Error handler and ISRs...
+Q_NORETURN Q_onError(char const * const module, int_t const id) {
+    fprintf(stderr, &quot;Assertion failed in %s:%d&quot;, module, id);
+
+    // NOTE: this implementation of the assertion handler is intended only
+    // for debugging and MUST be changed for deployment of the application
+    // (assuming that you ship your production code with assertions enabled).
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U);
+
+#ifndef NDEBUG
+    // light up the user LED
+    //GPIOA-&gt;BSRR = (1U &lt;&lt; LD4_PIN);  // turn LED on
+    // for debugging, hang on in an endless loop...
+    for (;;) {
+    }
+#endif
+
+    //NVIC_SystemReset();
+}
+// callback functions needed by the freertos ---------------------------------
+void vApplicationTickHook(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    //QTIMEEVT_TICK_FROM_ISR(0U, &amp;xHigherPriorityTaskWoken, &amp;l_TickHook);
+
+    //QF_TICK_X_FROM_ISR(0U, &amp;xHigherPriorityTaskWoken, &amp;l_TickHook);
+
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+//............................................................................
+void vApplicationMallocFailedHook(void) {
+    // Hook vacío
+}
+//............................................................................
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+    //Q_ERROR();
+    for (;;);
+}
+//............................................................................
+// configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must
+// provide an implementation of vApplicationGetIdleTaskMemory() to provide
+// the memory that is used by the Idle task.
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    // If the buffers to be provided to the Idle task are declared inside
+    // this function then they must be declared static - otherwise they will
+    // be allocated on the stack and so not exists after this function exits.
+    //
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    // Pass out a pointer to the StaticTask_t structure in which the
+    // Idle task's state will be stored.
+    *ppxIdleTaskTCBBuffer = &amp;xIdleTaskTCB;
+
+    // Pass out the array that will be used as the Idle task's stack.
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    // Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    // Note that, as the array is necessarily of type StackType_t,
+    // configMINIMAL_STACK_SIZE is specified in words, not bytes.
+    //
+    *pulIdleTaskStackSize = Q_DIM(uxIdleTaskStack);
+}</text>
+  </file>
+  <!--${.::blinky.c}-->
+  <file name="blinky.c">
+   <text>#include &quot;qpc.h&quot;    // QP/C real-time embedded framework
+#include &quot;bsp.h&quot;    // Board Support Package interface
+
+// ask QM to declare the Blinky class
+$declare ${AOs::Blinky}
+
+$define ${Shared}
+
+$define ${AOs::Blinky}</text>
+  </file>
+  <!--${.::main.c}-->
+  <file name="main.c">
+   <text>#include &quot;qpc.h&quot;                 // QP/C real-time embedded framework
+#include &quot;bsp.h&quot;                 // Board Support Package
+#include &quot;mef_awg.h&quot;
+#include &quot;include/awg.h&quot;
+
+#include &lt;stdio.h&gt;
+#include &lt;math.h&gt;
+#include &quot;pico/stdlib.h&quot;
+#include &quot;hardware/dma.h&quot;
+#include &quot;pico/stdlib.h&quot;
+#include &quot;hardware/pio.h&quot;
+
+//............................................................................
+int main() {
+    stdio_init_all();
+
+    /* Configura el awg. */
+    awg_config();
+
+    /* Configura el display. */
+
+    /* Configura los perifericos. */
+
+    QF_init();       // initialize the framework and the underlying RT kernel
+    BSP_init();      // initialize the BSP
+    BSP_start();     // start the AOs/Threads
+    return QF_run(); // run the QF application
+}</text>
+  </file>
+  <!--${.::Makefile}-->
+  <file name="Makefile">
+   <text># Makefile for building QP/C application on Windows and POSIX hosts
+#
+# examples of invoking this Makefile:
+# building configurations: Debug (default), Release, and Spy
+# make
+# make CONF=rel
+# make CONF=spy
+# make clean   # cleanup the build
+# make CONF=spy clean   # cleanup the build
+#
+# NOTE:
+# To use this Makefile on Windows, you will need the GNU make utility, which
+# is included in the QTools collection for Windows, see:
+#    http://sourceforge.net/projects/qpc/files/QTools/
+#
+
+#-----------------------------------------------------------------------------
+# project name:
+#
+PROJECT := blinky
+
+#-----------------------------------------------------------------------------
+# project directories:
+#
+
+# list of all source directories used by this project
+VPATH := . \
+
+# list of all include directories needed by this project
+INCLUDES := -I. \
+
+# location of the QP/C framework (if not provided in an env. variable)
+ifeq ($(QPC),)
+QPC := /qp/qpc
+endif
+
+#-----------------------------------------------------------------------------
+# project files:
+#
+
+# C source files...
+C_SRCS := \
+    blinky.c \
+    bsp.c \
+    main.c
+
+# C++ source files...
+CPP_SRCS :=
+
+LIB_DIRS :=
+LIBS     :=
+
+# defines...
+# QP_API_VERSION controls the QP API compatibility; 9999 means the latest API
+DEFINES   := -DQP_API_VERSION=9999
+
+ifeq (,$(CONF))
+    CONF := dbg
+endif
+
+#-----------------------------------------------------------------------------
+# add QP/C framework:
+#
+C_SRCS += \
+    qep_hsm.c \
+    qep_msm.c \
+    qf_act.c \
+    qf_actq.c \
+    qf_defer.c \
+    qf_dyn.c \
+    qf_mem.c \
+    qf_ps.c \
+    qf_qact.c \
+    qf_qeq.c \
+    qf_qmact.c \
+    qf_time.c \
+    qf_port.c
+
+QS_SRCS := \
+    qs.c \
+    qs_64bit.c \
+    qs_rx.c \
+    qs_fp.c \
+    qs_port.c
+
+ifeq ($(OS),Windows_NT)
+
+# NOTE:
+# For Windows hosts, you can choose:
+# - the single-threaded QP/C port (win32-qv) or
+# - the multithreaded QP/C port (win32).
+#
+QP_PORT_DIR := $(QPC)/ports/win32-qv
+#QP_PORT_DIR := $(QPC)/ports/win32
+LIBS += -lws2_32
+
+else
+
+# NOTE:
+# For POSIX hosts (Linux, MacOS), you can choose:
+# - the single-threaded QP/C port (win32-qv) or
+# - the multithreaded QP/C port (win32).
+#
+QP_PORT_DIR := $(QPC)/ports/posix-qv
+#QP_PORT_DIR := $(QPC)/ports/posix
+LIBS += -lpthread
+
+endif
+
+#============================================================================
+# Typically you should not need to change anything below this line
+
+VPATH    += $(QPC)/src/qf $(QP_PORT_DIR)
+INCLUDES += -I$(QPC)/include -I$(QP_PORT_DIR)
+
+#-----------------------------------------------------------------------------
+# GNU toolset:
+#
+# NOTE:
+# GNU toolset (MinGW) is included in the QTools collection for Windows, see:
+#     https://www.state-machine.com/qtools
+# It is assumed that %QTOOLS%\bin directory is added to the PATH
+#
+CC    := gcc
+CPP   := g++
+LINK  := gcc    # for C programs
+#LINK  := g++   # for C++ programs
+
+#-----------------------------------------------------------------------------
+# basic utilities (depends on the OS this Makefile runs on):
+#
+ifeq ($(OS),Windows_NT)
+    MKDIR      := mkdir
+    RM         := rm
+    TARGET_EXT := .exe
+else ifeq ($(OSTYPE),cygwin)
+    MKDIR      := mkdir -p
+    RM         := rm -f
+    TARGET_EXT := .exe
+else
+    MKDIR      := mkdir -p
+    RM         := rm -f
+    TARGET_EXT :=
+endif
+
+#-----------------------------------------------------------------------------
+# build configurations...
+
+ifeq (rel, $(CONF)) # Release configuration ..................................
+
+BIN_DIR := build_rel
+# gcc options:
+CFLAGS  = -c -O3 -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES) -DNDEBUG
+
+CPPFLAGS = -c -O3 -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES) -DNDEBUG
+
+else ifeq (spy, $(CONF))  # Spy configuration ................................
+
+BIN_DIR := build_spy
+
+C_SRCS   += $(QS_SRCS)
+VPATH    += $(QPC)/src/qs
+
+# gcc options:
+CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES) -DQ_SPY
+
+CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES) -DQ_SPY
+
+else # default Debug configuration .........................................
+
+BIN_DIR := build
+
+# gcc options:
+CFLAGS  = -c -g -O -fno-pie -std=c11 -pedantic -Wall -Wextra -W \
+    $(INCLUDES) $(DEFINES)
+
+CPPFLAGS = -c -g -O -fno-pie -std=c++11 -pedantic -Wall -Wextra \
+    -fno-rtti -fno-exceptions \
+    $(INCLUDES) $(DEFINES)
+
+endif  # .....................................................................
+
+ifndef GCC_OLD
+    LINKFLAGS := -no-pie
+endif
+
+#-----------------------------------------------------------------------------
+C_OBJS       := $(patsubst %.c,%.o,   $(C_SRCS))
+CPP_OBJS     := $(patsubst %.cpp,%.o, $(CPP_SRCS))
+
+TARGET_EXE   := $(BIN_DIR)/$(PROJECT)$(TARGET_EXT)
+C_OBJS_EXT   := $(addprefix $(BIN_DIR)/, $(C_OBJS))
+C_DEPS_EXT   := $(patsubst %.o,%.d, $(C_OBJS_EXT))
+CPP_OBJS_EXT := $(addprefix $(BIN_DIR)/, $(CPP_OBJS))
+CPP_DEPS_EXT := $(patsubst %.o,%.d, $(CPP_OBJS_EXT))
+
+#-----------------------------------------------------------------------------
+# rules
+#
+
+.PHONY: clean show
+
+all: $(TARGET_EXE)
+
+$(TARGET_EXE) : $(C_OBJS_EXT) $(CPP_OBJS_EXT)
+    $(CC) $(CFLAGS) $(QPC)/src/qs/qstamp.c -o $(BIN_DIR)/qstamp.o
+    $(LINK) $(LINKFLAGS) $(LIB_DIRS) -o $@ $^ $(BIN_DIR)/qstamp.o $(LIBS)
+
+$(BIN_DIR)/%.d : %.c
+    $(CC) -MM -MT $(@:.d=.o) $(CFLAGS) $&lt; &gt; $@
+
+$(BIN_DIR)/%.d : %.cpp
+    $(CPP) -MM -MT $(@:.d=.o) $(CPPFLAGS) $&lt; &gt; $@
+
+$(BIN_DIR)/%.o : %.c
+    $(CC) $(CFLAGS) $&lt; -o $@
+
+$(BIN_DIR)/%.o : %.cpp
+    $(CPP) $(CPPFLAGS) $&lt; -o $@
+
+# create BIN_DIR and include dependencies only if needed
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),show)
+ifneq ($(MAKECMDGOALS),debug)
+ifeq (&quot;$(wildcard $(BIN_DIR))&quot;,&quot;&quot;)
+$(shell $(MKDIR) $(BIN_DIR))
+endif
+-include $(C_DEPS_EXT) $(CPP_DEPS_EXT)
+endif
+endif
+endif
+
+clean :
+    -$(RM) $(BIN_DIR)/*.o \
+    $(BIN_DIR)/*.d \
+    $(TARGET_EXE)
+
+show :
+    @echo PROJECT      = $(PROJECT)
+    @echo TARGET_EXE   = $(TARGET_EXE)
+    @echo VPATH        = $(VPATH)
+    @echo C_SRCS       = $(C_SRCS)
+    @echo CPP_SRCS     = $(CPP_SRCS)
+    @echo C_DEPS_EXT   = $(C_DEPS_EXT)
+    @echo C_OBJS_EXT   = $(C_OBJS_EXT)
+    @echo C_DEPS_EXT   = $(C_DEPS_EXT)
+    @echo CPP_DEPS_EXT = $(CPP_DEPS_EXT)
+    @echo CPP_OBJS_EXT = $(CPP_OBJS_EXT)
+    @echo LIB_DIRS     = $(LIB_DIRS)
+    @echo LIBS         = $(LIBS)
+    @echo DEFINES      = $(DEFINES)
+</text>
+  </file>
+  <!--${.::mef_awg.h}-->
+  <file name="mef_awg.h">
+   <text>#include &quot;qpc.h&quot;
+
+#ifndef MEF_AWG_H_
+#define MEF_AWG_H_
+
+//$declare ${AOs_Awg} 
+/*
+$declare ${Shared_Awg} 
+*/
+#endif </text>
+  </file>
+  <!--${.::mef_awg.c}-->
+  <file name="mef_awg.c">
+   <text>#include &quot;mef_awg.h&quot;
+#include &quot;awg.h&quot;
+#include &quot;bsp.h&quot;
+
+/*
+$declare${AOs_Awg::Awg}
+
+$define${Shared_Awg}
+
+$define${AOs_Awg::Awg}
+*/
+//$define ${AOs_Awg}</text>
+  </file>
+ </directory>
+</model>

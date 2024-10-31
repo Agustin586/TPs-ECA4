@@ -8,12 +8,12 @@
   <item name="backups">0</item>
  </group>
  <group name="windows">
-  <item id="AOs_Awg::Awg::SM">0,0,694,379,*</item>
-  <item id=".::main.c">187,0,596,300</item>
-  <item id=".::blinky.c">0,295,596,300</item>
-  <item id=".::bsp.h">187,295,596,300</item>
+  <item id="AOs_Awg::Awg::SM">0,0,799,447,*</item>
+  <item id=".::main.c">0,147,596,300</item>
+  <item id=".::blinky.c">78,0,596,300</item>
+  <item id=".::bsp.h">78,147,596,300</item>
   <item id=".::mef_awg.h">0,0,596,300</item>
-  <item id=".::mef_awg.c">98,79,596,300</item>
+  <item id=".::mef_awg.c">0,147,596,300</item>
  </group>
  <group name="search">
   <item name="options">2032128</item>

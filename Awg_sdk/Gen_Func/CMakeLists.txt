@@ -12,6 +12,20 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
+# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.0.0)
+set(toolchainVersion 13_2_Rel1)
+set(picotoolVersion 2.0.0)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 # Generated Cmake Pico project file
 
 cmake_minimum_required(VERSION 3.13)
@@ -49,8 +63,10 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Gen_Func Gen_Func.c 
-    src/awg.c)
+add_executable(Gen_Func 
+    src/qm/main.c 
+    src/awg.c
+    )
 
 pico_set_program_name(Gen_Func "Gen_Func")
 pico_set_program_version(Gen_Func "0.1")
@@ -60,6 +76,26 @@ pico_generate_pio_header(Gen_Func ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
 
 # Directorios para los headers
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/qpc/ports/freertos)
+include_directories(${CMAKE_SOURCE_DIR}/qpc/include)
+include_directories(${CMAKE_SOURCE_DIR}/src/qm)
+include_directories(${CMAKE_SOURCE_DIR}/qpc/src/qf)
+include_directories(${CMAKE_SOURCE_DIR}/qpc/src/qs)
+#include_directories(quantum_leaps/qv)
+
+# Agrega todos los archivos de Quantum Leaps al ejecutable
+file(GLOB_RECURSE QP_SOURCES
+    qpc/src/qf/*.c
+    src/qm/*.c
+    qpc/ports/freertos/*.c
+    qpc/src/qs/*.c
+)
+
+list(FILTER QP_SOURCES EXCLUDE REGEX ".*qs.*")
+
+file(GLOB QM_SOURCES src/qm/*.c)
+
+target_sources(Gen_Func PRIVATE ${QP_SOURCES})
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Gen_Func 0)
@@ -79,6 +115,7 @@ target_include_directories(Gen_Func PRIVATE
 set(FREERTOS_PATH ${CMAKE_CURRENT_LIST_DIR}/FreeRTOS-Kernel)
 include_directories(${FREERTOS_PATH}/include)
 include_directories(${FREERTOS_PATH}/portable/GCC/ARM_CM0)
+include_directories(${FREERTOS_PATH}/portable/ThirdParty/GCC/RP2040/include)
 
 # Add FreeRTOS source files
 target_sources(Gen_Func PRIVATE
@@ -90,6 +127,8 @@ target_sources(Gen_Func PRIVATE
   ${FREERTOS_PATH}/event_groups.c
   ${FREERTOS_PATH}/portable/MemMang/heap_4.c
   ${FREERTOS_PATH}/portable/GCC/ARM_CM0/port.c
+  ${FREERTOS_PATH}/portable/GCC/ARM_CM0/portasm.c
+  ${FREERTOS_PATH}/portable/ThirdParty/GCC/RP2040/port.c
 )
 
 # Link FreeRTOS to your project

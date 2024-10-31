@@ -257,6 +257,17 @@ extern void awg_reset(void)
 {
     return;
 }
+/*-------------------------------------------------------------------------------------------*/
+extern void awg_stop(void)
+{
+
+    return;
+}
+extern int awg_reconfig(void)
+{
+
+    return 1;
+}
 
 /* PRIVATE FUNCTIONS FREERTOS */
 /*-------------------------------------------------------------------------------------------*/

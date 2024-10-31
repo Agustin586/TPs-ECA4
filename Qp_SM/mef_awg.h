@@ -37,24 +37,60 @@
 #ifndef MEF_AWG_H_
 #define MEF_AWG_H_
 
-$declare
-//$declare${Shared} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+//$declare${AOs_Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-//${Shared::BlinkySignals} ...................................................
-enum BlinkySignals {
-    TIMEOUT_SIG = Q_USER_SIG,
-    ENCODER_SIG,
-    INIT_SIG,
-    AVANC,
-    CONFIRM,
-    TIMER_1SEG_SIG,
-};
+//${AOs_Awg::Awg} ............................................................
+typedef struct {
+// protected:
+    QActive super;
 
-//${Shared::AO_Blinky} .......................................................
-extern QActive * const AO_Blinky;
+// public:
+    QTimeEvt time1segEvt;
+} Awg;
 
-//${Shared::Blinky_ctor} .....................................................
-void Blinky_ctor(void);
-//$enddecl${Shared} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// public:
+void Awg_Awg_ctor(Awg * const me);
+
+// protected:
+QState Awg_initial(Awg * const me, void const * const par);
+QState Awg_Reset(Awg * const me, QEvt const * const e);
+QState Awg_Configuracion(Awg * const me, QEvt const * const e);
+QState Awg_Tipo_Func(Awg * const me, QEvt const * const e);
+QState Awg_Freq(Awg * const me, QEvt const * const e);
+QState Awg_Amplitud(Awg * const me, QEvt const * const e);
+QState Awg_Offset(Awg * const me, QEvt const * const e);
+QState Awg_Confirm_config(Awg * const me, QEvt const * const e);
+QState Awg_Salida(Awg * const me, QEvt const * const e);
+
+//${AOs_Awg::setEvt_Econder} .................................................
+void setEvt_Econder(void);
+
+//${AOs_Awg::confirm_evt} ....................................................
+extern QEvt confirm_evt;
+
+//${AOs_Awg::setEvt_Confirm} .................................................
+void setEvt_Confirm(void);
+
+//${AOs_Awg::inst} ...........................................................
+extern Awg inst;
+
+//${AOs_Awg::AwgSignals} .....................................................
+extern enum AwgSignals;
+
+//${AOs_Awg::encoder_evt} ....................................................
+extern QEvt encoder_evt;
+
+//${AOs_Awg::init_evt} .......................................................
+extern QEvt init_evt;
+
+//${AOs_Awg::setEvt_Init} ....................................................
+void setEvt_Init(void);
+
+//${AOs_Awg::avanc_evt} ......................................................
+extern QEvt avanc_evt;
+
+//${AOs_Awg::setEvt_Avanc} ...................................................
+void setEvt_Avanc(void);
+//$enddecl${AOs_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #endif

@@ -34,4 +34,575 @@
 // <info@state-machine.com>
 //
 //$endhead${.::mef_awg.c} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#include "mef_awg.h"
+#include "awg.c"
 
+//$declare${AOs_Awg::Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+//${AOs_Awg::Awg} ............................................................
+typedef struct {
+// protected:
+    QActive super;
+
+// public:
+    QTimeEvt time1segEvt;
+} Awg;
+
+// public:
+static void Awg_Awg_ctor(Awg * const me);
+
+// protected:
+static QState Awg_initial(Awg * const me, void const * const par);
+static QState Awg_Reset(Awg * const me, QEvt const * const e);
+static QState Awg_Configuracion(Awg * const me, QEvt const * const e);
+static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e);
+static QState Awg_Freq(Awg * const me, QEvt const * const e);
+static QState Awg_Amplitud(Awg * const me, QEvt const * const e);
+static QState Awg_Offset(Awg * const me, QEvt const * const e);
+static QState Awg_Confirm_config(Awg * const me, QEvt const * const e);
+static QState Awg_Salida(Awg * const me, QEvt const * const e);
+//$enddecl${AOs_Awg::Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+//$skip${QP_VERSION} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// Check for the minimum required QP version
+#if (QP_VERSION < 730U) || (QP_VERSION != ((QP_RELEASE^4294967295U)%0x2710U))
+#error qpc version 7.3.0 or higher required
+#endif
+//$endskip${QP_VERSION} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//$define${AOs_Awg::Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+//${AOs_Awg::Awg} ............................................................
+
+//${AOs_Awg::Awg::Awg_ctor} ..................................................
+static void Awg_Awg_ctor(Awg * const me) {
+    Awg * const me = &Awg_inst;
+    QActive_ctor(&me->super, Q_STATE_CAST(&Awg_initial));
+    QTimeEvt_ctorX(&me->time1segEvt, &me->super, TIMER_1SEG_SIG, 0U);
+}
+
+//${AOs_Awg::Awg::SM} ........................................................
+static QState Awg_initial(Awg * const me, void const * const par) {
+    //${AOs_Awg::Awg::SM::initial}
+    return Q_TRAN(&Awg_Reset);
+}
+
+//${AOs_Awg::Awg::SM::Reset} .................................................
+static QState Awg_Reset(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Reset}
+        case Q_ENTRY_SIG: {
+            awg_reset();
+
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Reset::INIT}
+        case INIT_SIG: {
+            status_ = Q_TRAN(&Awg_Configuracion);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion} .........................................
+static QState Awg_Configuracion(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::initial}
+        case Q_INIT_SIG: {
+            status_ = Q_TRAN(&Awg_Tipo_Func);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Tipo_Func} ..............................
+static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Freq);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}
+        case ENCODER_SIG: {
+            awg_Func();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Freq} ...................................
+static QState Awg_Freq(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Freq}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Amplitud);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}
+        case ENCODER_SIG: {
+            awg_Freq();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Amplitud} ...............................
+static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Offset);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}
+        case ENCODER_SIG: {
+            awg_Amp();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Offset} .................................
+static QState Awg_Offset(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Offset}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}
+        case ENCODER_SIG: {
+            awg_Offset();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Confirm_config);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Confirm_config} .........................
+static QState Awg_Confirm_config(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}
+        case CONFIRM_SIG: {
+            awg_enableOutput();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC}
+        case AVANC_SIG: {
+            //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}
+            if (awg_reconfig() == 1) {
+                status_ = Q_TRAN(&Awg_Salida);
+            }
+            //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}
+            else if (awg_reconfig() == 0) {
+                status_ = Q_TRAN(&Awg_Tipo_Func);
+            }
+            else {
+                status_ = Q_UNHANDLED();
+            }
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Salida} ................................................
+static QState Awg_Salida(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Salida}
+        case Q_ENTRY_SIG: {
+            awg_start();
+            awg_display();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida}
+        case Q_EXIT_SIG: {
+            awg_ledOff()
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida::TIMER_1SEG}
+        case TIMER_1SEG_SIG: {
+            awg_blink();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida::AVANC}
+        case AVANC_SIG: {
+            awg_stop();
+            status_ = Q_TRAN(&Awg_Tipo_Func);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+//$enddef${AOs_Awg::Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+//$define${AOs_Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+//${AOs_Awg::Awg} ............................................................
+
+//${AOs_Awg::Awg::Awg_ctor} ..................................................
+static void Awg_Awg_ctor(Awg * const me) {
+    Awg * const me = &Awg_inst;
+    QActive_ctor(&me->super, Q_STATE_CAST(&Awg_initial));
+    QTimeEvt_ctorX(&me->time1segEvt, &me->super, TIMER_1SEG_SIG, 0U);
+}
+
+//${AOs_Awg::Awg::SM} ........................................................
+static QState Awg_initial(Awg * const me, void const * const par) {
+    //${AOs_Awg::Awg::SM::initial}
+    return Q_TRAN(&Awg_Reset);
+}
+
+//${AOs_Awg::Awg::SM::Reset} .................................................
+static QState Awg_Reset(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Reset}
+        case Q_ENTRY_SIG: {
+            awg_reset();
+
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Reset::INIT}
+        case INIT_SIG: {
+            status_ = Q_TRAN(&Awg_Configuracion);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion} .........................................
+static QState Awg_Configuracion(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::initial}
+        case Q_INIT_SIG: {
+            status_ = Q_TRAN(&Awg_Tipo_Func);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Tipo_Func} ..............................
+static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Freq);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}
+        case ENCODER_SIG: {
+            awg_Func();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Freq} ...................................
+static QState Awg_Freq(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Freq}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Amplitud);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}
+        case ENCODER_SIG: {
+            awg_Freq();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Amplitud} ...............................
+static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Offset);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}
+        case ENCODER_SIG: {
+            awg_Amp();
+            status_ = Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Offset} .................................
+static QState Awg_Offset(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Offset}
+        case Q_ENTRY_SIG: {
+            awg_resetEnc();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}
+        case ENCODER_SIG: {
+            awg_Offset();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset::AVANC}
+        case AVANC_SIG: {
+            status_ = Q_TRAN(&Awg_Confirm_config);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Configuracion::Confirm_config} .........................
+static QState Awg_Confirm_config(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}
+        case CONFIRM_SIG: {
+            awg_enableOutput();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC}
+        case AVANC_SIG: {
+            //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}
+            if (awg_reconfig() == 1) {
+                status_ = Q_TRAN(&Awg_Salida);
+            }
+            //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}
+            else if (awg_reconfig() == 0) {
+                status_ = Q_TRAN(&Awg_Tipo_Func);
+            }
+            else {
+                status_ = Q_UNHANDLED();
+            }
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&Awg_Configuracion);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::Awg::SM::Salida} ................................................
+static QState Awg_Salida(Awg * const me, QEvt const * const e) {
+    QState status_;
+    switch (e->sig) {
+        //${AOs_Awg::Awg::SM::Salida}
+        case Q_ENTRY_SIG: {
+            awg_start();
+            awg_display();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida}
+        case Q_EXIT_SIG: {
+            awg_ledOff()
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida::TIMER_1SEG}
+        case TIMER_1SEG_SIG: {
+            awg_blink();
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Salida::AVANC}
+        case AVANC_SIG: {
+            awg_stop();
+            status_ = Q_TRAN(&Awg_Tipo_Func);
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&QHsm_top);
+            break;
+        }
+    }
+    return status_;
+}
+
+//${AOs_Awg::setEvt_Econder} .................................................
+void setEvt_Econder(void) {
+    // Crear el evento ENCODER y enviarlo
+    //QEvt *encoder_evt = Q_NEW(QEvt, ENCODER_SIG);  // Crear el evento con la señal ENCODER_SIG
+
+    // Enviar el evento a la máquina de estados activa (AO: Active Object)
+    QACTIVE_POST(Awg_inst, &encoder_evt, 0);
+}
+
+//${AOs_Awg::confirm_evt} ....................................................
+QEvt confirm_evt = {CONFIRM_SIG, 0 , 0};
+
+//${AOs_Awg::setEvt_Confirm} .................................................
+void setEvt_Confirm(void) {
+    QACTIVE_POST(Awg_inst, &confirm_evt, 0);
+}
+
+//${AOs_Awg::inst} ...........................................................
+Awg inst;
+
+//${AOs_Awg::AwgSignals} .....................................................
+enum AwgSignals {
+    ENCODER_SIG = Q_USER_SIG,
+    INIT_SIG,
+    AVANC,
+    CONFIRM,
+    TIMER_1SEG_SIG,
+};
+
+//${AOs_Awg::encoder_evt} ....................................................
+QEvt encoder_evt = {ENCODER_SIG, 0 ,0};
+
+//${AOs_Awg::init_evt} .......................................................
+QEvt init_evt = {INIT_SIG, 0, 0};
+
+//${AOs_Awg::setEvt_Init} ....................................................
+void setEvt_Init(void) {
+    QACTIVE_POST(Awg_inst, &init_evt, 0);
+}
+
+//${AOs_Awg::avanc_evt} ......................................................
+QEvt avanc_evt = {AVANC_SIG, 0, 0};
+
+//${AOs_Awg::setEvt_Avanc} ...................................................
+void setEvt_Avanc(void) {
+    QACTIVE_POST(Awg_inst, &avanc_evt, 0);
+}
+//$enddef${AOs_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -237,14 +237,14 @@ QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);<
       <tran trig="AVANC">
        <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}-->
        <choice target="../../../../3">
-        <guard brief="fin_config==1"/>
+        <guard brief="fin_config==1">awg_reconfig() == 1</guard>
         <choice_glyph conn="19,50,4,0,9,24,2">
          <action box="1,9,11,2"/>
         </choice_glyph>
        </choice>
        <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}-->
        <choice target="../../../1">
-        <guard brief="fin_config==0"/>
+        <guard brief="fin_config==0">awg_reconfig() == 0</guard>
         <choice_glyph conn="19,50,4,2,-8">
          <action box="0,-5,12,2"/>
         </choice_glyph>
@@ -608,7 +608,7 @@ void vApplicationTickHook(void) {
     
     QTIMEEVT_TICK_FROM_ISR(0U, &amp;xHigherPriorityTaskWoken, &amp;l_TickHook);
 
-    QF_TICK_X(0U, (void *)0);  // Indica a QP que procese el tick
+    QF_TICK_X_FROM_ISR(0U, &amp;xHigherPriorityTaskWoken, &amp;l_TickHook);
 
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
@@ -621,6 +621,34 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     (void)xTask;
     (void)pcTaskName;
     Q_ERROR();
+}
+//............................................................................
+// configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must
+// provide an implementation of vApplicationGetIdleTaskMemory() to provide
+// the memory that is used by the Idle task.
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    // If the buffers to be provided to the Idle task are declared inside
+    // this function then they must be declared static - otherwise they will
+    // be allocated on the stack and so not exists after this function exits.
+    //
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    // Pass out a pointer to the StaticTask_t structure in which the
+    // Idle task's state will be stored.
+    *ppxIdleTaskTCBBuffer = &amp;xIdleTaskTCB;
+
+    // Pass out the array that will be used as the Idle task's stack.
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    // Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    // Note that, as the array is necessarily of type StackType_t,
+    // configMINIMAL_STACK_SIZE is specified in words, not bytes.
+    //
+    *pulIdleTaskStackSize = Q_DIM(uxIdleTaskStack);
 }</text>
   </file>
   <!--${.::blinky.c}-->
@@ -640,9 +668,26 @@ $define ${AOs::Blinky}</text>
    <text>#include &quot;qpc.h&quot;                 // QP/C real-time embedded framework
 #include &quot;bsp.h&quot;                 // Board Support Package
 #include &quot;mef_awg.h&quot;
+#include &quot;include/awg.h&quot;
+
+#include &lt;stdio.h&gt;
+#include &lt;math.h&gt;
+#include &quot;pico/stdlib.h&quot;
+#include &quot;hardware/dma.h&quot;
+#include &quot;pico/stdlib.h&quot;
+#include &quot;hardware/pio.h&quot;
 
 //............................................................................
 int main() {
+    stdio_init_all();
+
+    /* Configura el awg. */
+    awg_config();
+
+    /* Configura el display. */
+
+    /* Configura los perifericos. */
+
     QF_init();       // initialize the framework and the underlying RT kernel
     BSP_init();      // initialize the BSP
     BSP_start();     // start the AOs/Threads
@@ -922,6 +967,7 @@ $declare ${AOs_Awg}
   <!--${.::mef_awg.c}-->
   <file name="mef_awg.c">
    <text>#include &quot;mef_awg.h&quot;
+#include &quot;awg.c&quot;
 
 $declare ${AOs_Awg::Awg}
 

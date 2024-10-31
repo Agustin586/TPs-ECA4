@@ -10,48 +10,48 @@
 // #include "hardware/clocks.h"
 // #include "hardware/uart.h"
 
-#include <stdio.h>
-#include <math.h>
-#include "pico/stdlib.h"
-#include "hardware/dma.h"
-#include "pico/stdlib.h"
-#include "hardware/pio.h"
-// #include "blink.pio.h" // Our assembled PIO program
+// #include <stdio.h>
+// #include <math.h>
+// #include "pico/stdlib.h"
+// #include "hardware/dma.h"
+// #include "pico/stdlib.h"
+// #include "hardware/pio.h"
+// // #include "blink.pio.h" // Our assembled PIO program
 
-#include "include/awg.h"
+// #include "include/awg.h"
 
-int main()
-{
-	stdio_init_all();
+// int main()
+// {
+// 	stdio_init_all();
 
-	/* Configura el awg. */
-	awg_config();
+// 	/* Configura el awg. */
+// 	awg_config();
 
-	/* Configura el display. */
+// 	/* Configura el display. */
 
-	/* Configura los perifericos. */
+// 	/* Configura los perifericos. */
 
-	while (1)
-	{
-	}
+// 	while (1)
+// 	{
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
-void vApplicationMallocFailedHook(void)
-{
-	printf("Failed to assigned memory\n\r");
+// void vApplicationMallocFailedHook(void)
+// {
+// 	printf("Failed to assigned memory\n\r");
 
-	// Aquí puedes manejar el error, por ejemplo, entrar en un bucle infinito o registrar el error.
-	for (;;)
-		; // Bucle infinito
-}
+// 	// Aquí puedes manejar el error, por ejemplo, entrar en un bucle infinito o registrar el error.
+// 	for (;;)
+// 		; // Bucle infinito
+// }
 
-void vApplicationTickHook(void)
-{
-	// Aquí puedes manejar el tick, como hacer algo cada vez que se incrementa el tick.
-	// Por ejemplo, puedes controlar algún contador, o realizar tareas de mantenimiento.
-}
+// void vApplicationTickHook(void)
+// {
+// 	// Aquí puedes manejar el tick, como hacer algo cada vez que se incrementa el tick.
+// 	// Por ejemplo, puedes controlar algún contador, o realizar tareas de mantenimiento.
+// }
 
 // int main()
 // {

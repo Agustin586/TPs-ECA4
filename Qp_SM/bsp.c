@@ -37,8 +37,11 @@
 // Board Support Package implementation for desktop OS (Windows, Linux, MacOS)
 #include "qpc.h"    // QP/C real-time embedded framework
 #include "bsp.h"    // Board Support Package interface
+#include "mef_awg.h"
 #include <stdio.h>  // for printf()/fprintf()
 #include <stdlib.h> // for exit()
+
+void assert_failed(char const * const module, int_t const id); // prototype
 
 //............................................................................
 void BSP_init(void)   {
@@ -49,24 +52,35 @@ void BSP_init(void)   {
 }
 //............................................................................
 void BSP_start(void) {
-    // no need to initialize event pools
-    //static QF_MPOOL_EL(QEvt) smlPoolSto[10];
-    //QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
+    // initialize event pools
+    static QF_MPOOL_EL(QEvt) smlPoolSto[10];
+    QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     // no need to initialize publish-subscribe
     //QActive_psInit(subscrSto, Q_DIM(subscrSto));
 
     // instantiate and start AOs/threads...
 
-    static QEvt const *blinkyQueueSto[10];
-    Blinky_ctor();
-    QACTIVE_START(AO_Blinky,
-        1U,                          // QP prio. of the AO
-        blinkyQueueSto,              // event queue storage
-        Q_DIM(blinkyQueueSto),       // queue length [events]
-        (void *)0, 0U,               // no stack storage
-        (void *)0);                  // no initialization param
+    //static QEvt const *blinkyQueueSto[10];
+    //Blinky_ctor();
+    //QACTIVE_START(AO_Blinky,
+    //    1U,                          // QP prio. of the AO
+    //    blinkyQueueSto,              // event queue storage
+    //    Q_DIM(blinkyQueueSto),       // queue length [events]
+    //    (void *)0, 0U,               // no stack storage
+    //    (void *)0);                  // no initialization param
 
+    static QEvt const *awgQueueSto[10];
+    Awg_ctor();
+    QACTIVE_START(AO_Awg_Awg,
+        2U,                                  // QP prio. of the AO
+        awgQueueSto,                         // event queue storage
+        Q_DIM(awgQueueSto),                  // queue length [events]
+        512,                                 // stack para la tarea
+        sizeof(configMINIMAL_STACK_SIZE),    // stack in bytes
+        (void *)0);                          // no initialization param
+
+    return;
 }
 //............................................................................
 void BSP_ledOff(void) { printf("LED OFF\n"); }
@@ -76,10 +90,73 @@ void BSP_ledOn(void)  { printf("LED ON\n");  }
 // callback functions needed by the framework --------------------------------
 void QF_onStartup(void) {}
 void QF_onCleanup(void) {}
-void QF_onClockTick(void) {
-    QF_TICK_X(0U, (void *)0); // QF clock tick processing for rate 0
+void assert_failed(char const * const module, int_t const id) {
+    Q_onError(module, id);
 }
 void Q_onError(char const * const module, int id) {
     fprintf(stderr, "Assertion failed in %s:%d", module, id);
-    exit(-1);
+    // NOTE: this implementation of the error handler is intended only
+    // for debugging and MUST be changed for deployment of the application
+    // (assuming that you ship your production code with assertions enabled).
+    Q_UNUSED_PAR(module);
+    Q_UNUSED_PAR(id);
+    QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
+#ifndef NDEBUG
+    // for debugging, hang on in an endless loop...
+    for (;;) {
+    }
+#else
+    NVIC_SystemReset();
+    for (;;) { // explicitly "no-return"
+    }
+#endif
+}
+// callback functions needed by the freertos ---------------------------------
+void vApplicationTickHook(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    QTIMEEVT_TICK_FROM_ISR(0U, &xHigherPriorityTaskWoken, &l_TickHook);
+
+    QF_TICK_X_FROM_ISR(0U, &xHigherPriorityTaskWoken, &l_TickHook);
+
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+//............................................................................
+void vApplicationMallocFailedHook(void) {
+    // Hook vacío
+}
+//............................................................................
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    (void)xTask;
+    (void)pcTaskName;
+    Q_ERROR();
+}
+//............................................................................
+// configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must
+// provide an implementation of vApplicationGetIdleTaskMemory() to provide
+// the memory that is used by the Idle task.
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+    // If the buffers to be provided to the Idle task are declared inside
+    // this function then they must be declared static - otherwise they will
+    // be allocated on the stack and so not exists after this function exits.
+    //
+    static StaticTask_t xIdleTaskTCB;
+    static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    // Pass out a pointer to the StaticTask_t structure in which the
+    // Idle task's state will be stored.
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    // Pass out the array that will be used as the Idle task's stack.
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    // Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    // Note that, as the array is necessarily of type StackType_t,
+    // configMINIMAL_STACK_SIZE is specified in words, not bytes.
+    //
+    *pulIdleTaskStackSize = Q_DIM(uxIdleTaskStack);
 }
