@@ -45,6 +45,14 @@
 #define OFFSET_MIN_CUENTAS 0
 #define OFFSET_EN_VOLTAJE(X) X *OFFSET_MAX_CUENTAS / VOLTAJE_MAX
 
+// Parametros maximos
+#define FREQ_MAX 1500000
+#define FREQ_MIN 1
+#define AMPLITUD_SALIDA_MAX 12
+#define AMPLITUD_SALIDA_MIN 1.67
+#define OFFSET_SALIDA_MAX 6
+#define OFFSET_SALIDA_MIN 0
+
 // Definimos los multiplicadores de frecuencia
 typedef enum
 {
@@ -123,6 +131,10 @@ typedef struct
      * @brief Multiplicador de amplitud
      */
     MultAmp_t multAmpl;
+    /**
+     * @brief Multiplicador de offset
+     */
+    MultAmp_t multOffset;
     /**
      * @brief Contador del encoder
      */
@@ -295,6 +307,7 @@ extern void awg_config(void)
     selector.direccion = SENTIDO_HORARIO;
     selector.multAmpl = V;
     selector.multFreq = MULT_HZ;
+    selector.multOffset = V;
 
     // Inicializamos una señal sinusoidal con 1000 Hz, amplitud 1.0 y offset 0.0
     // init_signal(&signal_ch1, SIGNAL_SINE, 1000, 127, 128, 0.0, 0.0, 0.0);
@@ -353,26 +366,36 @@ extern void awg_Func(void)
 extern void awg_Freq(void)
 {
     // printf("Estado: config freq.\n");
+    float freq_new = signal_ch1.frequency;
 
     /* Deteccion del evento encoder. */
     if (selector.direccion == SENTIDO_HORARIO)
     {
         if (selector.multFreq == MULT_HZ)
-            signal_ch1.frequency += 1;
+            freq_new += 1;
         else if (selector.multFreq == MULT_KHZ)
-            signal_ch1.frequency += 1000;
+            freq_new += 1000;
         else if (selector.multFreq == MULT_MHZ)
-            signal_ch1.frequency += 1000000;
+            freq_new += 1000000;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
         if (selector.multFreq == MULT_HZ)
-            signal_ch1.frequency -= 1;
+            freq_new -= 1;
         else if (selector.multFreq == MULT_KHZ)
-            signal_ch1.frequency -= 1000;
+            freq_new -= 1000;
         else if (selector.multFreq == MULT_MHZ)
-            signal_ch1.frequency -= 1000000;
+            freq_new -= 1000000;
     }
+
+    // Limites
+    if (freq_new > FREQ_MAX)
+        freq_new = FREQ_MAX;
+    else if (freq_new < FREQ_MIN)
+        freq_new = FREQ_MIN;
+
+    // Carga la informacion en la señal
+    config_freq(&signal_ch1, freq_new);
 
     printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
 
@@ -383,12 +406,69 @@ extern void awg_Amp(void)
 {
     // printf("Estado: config Amp.\n");
 
+    float amp_new = signal_ch1.amplitude;
+
+    // Detecta el evento de amplitud
+    if (selector.direccion == SENTIDO_HORARIO)
+    {
+        if (selector.multAmpl == V)
+            amp_new += 1;
+        else if (selector.multAmpl == mV)
+            amp_new += 0.1;
+    }
+    else if (selector.direccion == SENTIDO_ANTIHORARIO)
+    {
+        if (selector.multAmpl == V)
+            amp_new -= 1;
+        else if (selector.multAmpl == mV)
+            amp_new -= 0.1;
+    }
+
+    // Limites
+    if (amp_new > AMPLITUD_SALIDA_MAX)
+        amp_new = AMPLITUD_SALIDA_MAX;
+    else if (amp_new < AMPLITUD_SALIDA_MIN)
+        amp_new = AMPLITUD_SALIDA_MIN;
+
+    // Carga la informacion
+    config_amplitude(&signal_ch1, amp_new);
+
+    printf("Amplitud: %.2f.\n", amp_new);
+
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Offset(void)
 {
     // printf("Estado: config offset.\n");
+    float offset_new = signal_ch1.offset;
+
+    // Detecta el evento del offset
+    if (selector.direccion == SENTIDO_HORARIO)
+    {
+        if (selector.multOffset == V)
+            offset_new += 1;
+        else if (selector.multOffset == mV)
+            offset_new += 0.1;
+    }
+    else if (selector.direccion == SENTIDO_ANTIHORARIO)
+    {
+        if (selector.multOffset == V)
+            offset_new -= 1;
+        else if (selector.multOffset == mV)
+            offset_new -= 0.1;
+    }
+
+    // Limites
+    if (offset_new > OFFSET_SALIDA_MAX)
+        offset_new = OFFSET_SALIDA_MAX;
+    else if (offset_new < OFFSET_SALIDA_MIN)
+        offset_new = OFFSET_SALIDA_MIN;
+
+    // Carga la informacion
+    config_offset(&signal_ch1, offset_new);
+
+    printf("Offset: %.2f.\n", offset_new);
 
     return;
 }
@@ -459,6 +539,11 @@ extern void awg_multiplicador(uint8_t tipo)
         selector.multAmpl += 1;
         if (selector.multAmpl > mV)
             selector.multAmpl = V;
+        break;
+    case MULTIPLICADOR_OFFSET:
+        selector.multOffset += 1;
+        if (selector.multOffset > mV)
+            selector.multOffset = V;
         break;
     default:
         break;

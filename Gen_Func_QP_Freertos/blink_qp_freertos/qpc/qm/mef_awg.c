@@ -334,6 +334,12 @@ static QState Awg_Offset(Awg * const me, QEvt const * const e) {
             status_ = Q_TRAN(&Awg_Amplitud);
             break;
         }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset::MULTIPLICADOR}
+        case MULTIPLICADOR_SIG: {
+            awg_multiplicador(MULTIPLICADOR_OFFSET);
+            status_ = Q_HANDLED();
+            break;
+        }
         default: {
             status_ = Q_SUPER(&Awg_Configuracion);
             break;

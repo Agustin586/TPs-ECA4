@@ -85,6 +85,7 @@ void setEvt_Multiplicador(void);
 enum Multiplador_t {
     MULTIPLICADOR_FREQ = 0,
     MULTIPLICADOR_AMP,
+    MULTIPLICADOR_OFFSET,
 };
 //$enddecl${Shared_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

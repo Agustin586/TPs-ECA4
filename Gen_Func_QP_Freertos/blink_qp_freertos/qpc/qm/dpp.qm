@@ -124,7 +124,7 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
      <entry>awg_reset();</entry>
      <!--${AOs_Awg::Awg::SM::Reset::INIT}-->
      <tran trig="INIT" target="../../2">
-      <tran_glyph conn="41,16,2,0,7">
+      <tran_glyph conn="41,16,2,0,6">
        <action box="1,1,10,2"/>
       </tran_glyph>
      </tran>
@@ -136,7 +136,7 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
     <state name="Configuracion">
      <!--${AOs_Awg::Awg::SM::Configuracion::initial}-->
      <initial target="../1">
-      <initial_glyph conn="14,27,5,0,6,1">
+      <initial_glyph conn="14,26,5,0,6,1">
        <action box="0,-2,10,2"/>
       </initial_glyph>
      </initial>
@@ -147,18 +147,18 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
 printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
       <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}-->
       <tran trig="AVANC" target="../../2">
-       <tran_glyph conn="27,33,1,3,8">
+       <tran_glyph conn="27,32,1,3,8">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}-->
       <tran trig="ENCODER">
        <action>awg_Func();</action>
-       <tran_glyph conn="13,39,3,-1,11">
+       <tran_glyph conn="13,38,3,-1,11">
         <action box="0,-4,12,4"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="13,28,14,13">
+      <state_glyph node="13,27,14,13">
        <entry box="1,2,13,4"/>
       </state_glyph>
      </state>
@@ -169,31 +169,31 @@ printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
 printf(&quot;Estado: config freq.\n&quot;);</entry>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}-->
       <tran trig="AVANC" target="../../3">
-       <tran_glyph conn="51,33,1,3,8">
+       <tran_glyph conn="51,32,1,3,8">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}-->
       <tran trig="ENCODER">
        <action>awg_Freq();</action>
-       <tran_glyph conn="35,39,3,-1,11">
+       <tran_glyph conn="35,38,3,-1,11">
         <action box="0,-4,11,4"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ATRAS}-->
       <tran trig="ATRAS" target="../../1">
-       <tran_glyph conn="35,36,3,1,-8">
+       <tran_glyph conn="35,35,3,1,-8">
         <action box="-5,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::MULTIPLICADOR}-->
       <tran trig="MULTIPLICADOR">
        <action>awg_multiplicador(MULTIPLICADOR_FREQ);</action>
-       <tran_glyph conn="35,42,3,-1,13">
+       <tran_glyph conn="35,41,3,-1,13">
         <action box="0,-2,13,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="35,28,16,15">
+      <state_glyph node="35,27,16,15">
        <entry box="1,2,13,4"/>
       </state_glyph>
      </state>
@@ -204,31 +204,31 @@ printf(&quot;Estado: config freq.\n&quot;);</entry>
 printf(&quot;Estado: config Amp.\n&quot;);</entry>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}-->
       <tran trig="AVANC" target="../../4">
-       <tran_glyph conn="76,33,1,1,5,16,-5">
+       <tran_glyph conn="76,32,1,1,5,16,-5">
         <action box="0,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}-->
       <tran trig="ENCODER">
        <action>awg_Amp();</action>
-       <tran_glyph conn="59,39,3,-1,11">
+       <tran_glyph conn="59,38,3,-1,11">
         <action box="0,-4,11,4"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ATRAS}-->
       <tran trig="ATRAS" target="../../2">
-       <tran_glyph conn="59,36,3,1,-8">
+       <tran_glyph conn="59,35,3,1,-8">
         <action box="-5,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::MULTIPLICADOR}-->
       <tran trig="MULTIPLICADOR">
        <action>awg_multiplicador(MULTIPLICADOR_AMP);</action>
-       <tran_glyph conn="59,42,3,-1,15">
+       <tran_glyph conn="59,41,3,-1,15">
         <action box="0,-2,14,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="59,28,17,15">
+      <state_glyph node="59,27,17,15">
        <entry box="1,2,13,4"/>
       </state_glyph>
      </state>
@@ -240,23 +240,30 @@ printf(&quot;Estado: config offset.\n&quot;);</entry>
       <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}-->
       <tran trig="ENCODER">
        <action>awg_Offset();</action>
-       <tran_glyph conn="59,55,3,-1,12">
+       <tran_glyph conn="59,54,3,-1,12">
         <action box="0,-4,12,4"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Offset::AVANC}-->
       <tran trig="AVANC" target="../../5">
-       <tran_glyph conn="59,50,3,1,-9">
+       <tran_glyph conn="59,49,3,1,-9">
         <action box="-5,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ATRAS}-->
       <tran trig="ATRAS" target="../../3">
-       <tran_glyph conn="76,53,1,1,3,-17,-3">
+       <tran_glyph conn="76,52,1,1,3,-17,-3">
         <action box="0,0,10,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="59,44,17,13">
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::MULTIPLICADOR}-->
+      <tran trig="MULTIPLICADOR">
+       <action>awg_multiplicador(MULTIPLICADOR_OFFSET);</action>
+       <tran_glyph conn="59,57,3,-1,14">
+        <action box="0,-2,14,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="59,43,17,16">
        <entry box="1,2,13,4"/>
       </state_glyph>
      </state>
@@ -266,7 +273,7 @@ printf(&quot;Estado: config offset.\n&quot;);</entry>
       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}-->
       <tran trig="CONFIRM">
        <action>awg_enableOutput();</action>
-       <tran_glyph conn="34,56,3,-1,12">
+       <tran_glyph conn="34,55,3,-1,12">
         <action box="0,-4,17,4"/>
        </tran_glyph>
       </tran>
@@ -275,32 +282,32 @@ printf(&quot;Estado: config offset.\n&quot;);</entry>
        <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}-->
        <choice target="../../../../3">
         <guard brief="fin_config==1">awg_reconfig() == 1</guard>
-        <choice_glyph conn="22,50,4,0,9,21,2">
-         <action box="1,9,11,2"/>
+        <choice_glyph conn="22,49,4,0,12,21,4">
+         <action box="0,13,11,2"/>
         </choice_glyph>
        </choice>
        <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}-->
        <choice target="../../../1">
         <guard brief="fin_config==0">awg_reconfig() == 0</guard>
-        <choice_glyph conn="22,50,5,2,-3,-9">
+        <choice_glyph conn="22,49,5,2,-3,-9">
          <action box="-2,-5,12,2"/>
         </choice_glyph>
        </choice>
-       <tran_glyph conn="34,50,3,-1,-12">
+       <tran_glyph conn="34,49,3,-1,-12">
         <action box="-5,-2,10,2"/>
        </tran_glyph>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::ATRAS}-->
       <tran trig="ATRAS" target="../../4">
-       <tran_glyph conn="50,53,1,3,9">
+       <tran_glyph conn="50,52,1,3,9">
         <action box="0,0,10,2"/>
        </tran_glyph>
       </tran>
-      <state_glyph node="34,46,16,11">
+      <state_glyph node="34,45,16,11">
        <entry box="1,2,6,2"/>
       </state_glyph>
      </state>
-     <state_glyph node="11,23,73,35"/>
+     <state_glyph node="11,22,73,38"/>
     </state>
     <!--${AOs_Awg::Awg::SM::Salida}-->
     <state name="Salida">
@@ -310,18 +317,18 @@ printf(&quot;Estado: config offset.\n&quot;);</entry>
      <!--${AOs_Awg::Awg::SM::Salida::TIMER_1SEG}-->
      <tran trig="TIMER_1SEG">
       <action>awg_blink();</action>
-      <tran_glyph conn="31,78,3,-1,12">
+      <tran_glyph conn="31,82,3,-1,12">
        <action box="0,-4,15,4"/>
       </tran_glyph>
      </tran>
      <!--${AOs_Awg::Awg::SM::Salida::AVANC}-->
      <tran trig="AVANC" target="../../2/1">
       <action>awg_stop();</action>
-      <tran_glyph conn="42,79,2,3,3,-34,-49,5">
+      <tran_glyph conn="42,83,2,3,3,-34,-54,5">
        <action box="-25,-1,12,4"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="31,61,23,18">
+     <state_glyph node="31,65,23,18">
       <entry box="1,2,13,6"/>
       <exit box="1,8,13,4"/>
      </state_glyph>
@@ -401,6 +408,7 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
    <code>{
     MULTIPLICADOR_FREQ = 0,
     MULTIPLICADOR_AMP,
+    MULTIPLICADOR_OFFSET,
 };</code>
   </attribute>
  </package>
