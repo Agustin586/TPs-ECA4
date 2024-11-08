@@ -29,6 +29,8 @@
 // Define los pines del encoder
 #define ENCODER_PIN_A 4
 #define ENCODER_PIN_B 5
+// Define el pin del multiplicador
+#define MULTIPLICADOR_PIN 3
 // Sentido de giro
 #define SENTIDO_HORARIO 1
 #define SENTIDO_ANTIHORARIO -1
@@ -46,9 +48,9 @@
 // Definimos los multiplicadores de frecuencia
 typedef enum
 {
-    HZ = 0,
-    KHZ,
-    MHZ,
+    MULT_HZ = 0,
+    MULT_KHZ,
+    MULT_MHZ,
 } MultFreq_t;
 
 // Definimos los multiplicadores de amplitud
@@ -292,7 +294,7 @@ extern void awg_config(void)
     selector.cont = 0;
     selector.direccion = SENTIDO_HORARIO;
     selector.multAmpl = V;
-    selector.multFreq = HZ;
+    selector.multFreq = MULT_HZ;
 
     // Inicializamos una señal sinusoidal con 1000 Hz, amplitud 1.0 y offset 0.0
     // init_signal(&signal_ch1, SIGNAL_SINE, 1000, 127, 128, 0.0, 0.0, 0.0);
@@ -355,22 +357,24 @@ extern void awg_Freq(void)
     /* Deteccion del evento encoder. */
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multFreq == HZ)
+        if (selector.multFreq == MULT_HZ)
             signal_ch1.frequency += 1;
-        else if (selector.multFreq == KHZ)
+        else if (selector.multFreq == MULT_KHZ)
             signal_ch1.frequency += 1000;
-        else if (selector.multFreq == MHZ)
+        else if (selector.multFreq == MULT_MHZ)
             signal_ch1.frequency += 1000000;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multFreq == HZ)
-            signal_ch1.frequency += 1;
-        else if (selector.multFreq == KHZ)
-            signal_ch1.frequency += 1000;
-        else if (selector.multFreq == MHZ)
-            signal_ch1.frequency += 1000000;
+        if (selector.multFreq == MULT_HZ)
+            signal_ch1.frequency -= 1;
+        else if (selector.multFreq == MULT_KHZ)
+            signal_ch1.frequency -= 1000;
+        else if (selector.multFreq == MULT_MHZ)
+            signal_ch1.frequency -= 1000000;
     }
+
+    printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
 
     return;
 }
@@ -440,6 +444,27 @@ extern void awg_stop(void)
 extern int awg_reconfig(void)
 {
     return 0;
+}
+/*-------------------------------------------------------------------------------------------*/
+extern void awg_multiplicador(uint8_t tipo)
+{
+    switch (tipo)
+    {
+    case MULTIPLICADOR_FREQ:
+        selector.multFreq += 1;
+        if (selector.multFreq > MULT_MHZ)
+            selector.multFreq = MULT_HZ;
+        break;
+    case MULTIPLICADOR_AMP:
+        selector.multAmpl += 1;
+        if (selector.multAmpl > mV)
+            selector.multAmpl = V;
+        break;
+    default:
+        break;
+    }
+
+    return;
 }
 
 // PRIVATE FUNCTIONS FREERTOS =================================================================
@@ -515,7 +540,7 @@ static void prvTaskRtos_pulsadores(void *pvParameters)
 
             while (!getState_Pulsador(AVANCE_PIN))
             {
-                vTaskDelay(pdMS_TO_TICKS(10));
+                vTaskDelay(pdMS_TO_TICKS(5));
             }
         }
         else if (!getState_Pulsador(ATRAS_PIN))
@@ -524,7 +549,16 @@ static void prvTaskRtos_pulsadores(void *pvParameters)
 
             while (!getState_Pulsador(ATRAS_PIN))
             {
-                vTaskDelay(pdMS_TO_TICKS(10));
+                vTaskDelay(pdMS_TO_TICKS(5));
+            }
+        }
+        else if (!getState_Pulsador(MULTIPLICADOR_PIN))
+        {
+            setEvt_Multiplicador();
+
+            while (!getState_Pulsador(MULTIPLICADOR_PIN))
+            {
+                vTaskDelay(pdMS_TO_TICKS(5));
             }
         }
 
@@ -781,6 +815,9 @@ static void init_pins(void)
 
     gpio_init(ATRAS_PIN);
     gpio_set_dir(ATRAS_PIN, GPIO_IN);
+
+    gpio_init(MULTIPLICADOR_PIN);
+    gpio_set_dir(MULTIPLICADOR_PIN, GPIO_IN);
 
     // gpio_put(LED_PIN, 1);
 

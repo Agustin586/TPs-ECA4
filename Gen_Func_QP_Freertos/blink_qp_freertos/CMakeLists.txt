@@ -75,6 +75,9 @@ target_link_libraries(pico-freertos PRIVATE
     # hardware_i2c
     hardware_dma
     hardware_pio
+    hardware_gpio
+    hardware_irq
+    hardware_pwm
     # hardware_interp
     # hardware_timer
     # hardware_watchdog

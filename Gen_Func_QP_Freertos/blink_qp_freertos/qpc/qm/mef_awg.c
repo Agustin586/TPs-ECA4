@@ -254,6 +254,7 @@ static QState Awg_Freq(Awg * const me, QEvt const * const e) {
         }
         //${AOs_Awg::Awg::SM::Configuracion::Freq::MULTIPLICADOR}
         case MULTIPLICADOR_SIG: {
+            awg_multiplicador(MULTIPLICADOR_FREQ);
             status_ = Q_HANDLED();
             break;
         }
@@ -290,6 +291,12 @@ static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Configuracion::Amplitud::ATRAS}
         case ATRAS_SIG: {
             status_ = Q_TRAN(&Awg_Freq);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud::MULTIPLICADOR}
+        case MULTIPLICADOR_SIG: {
+            awg_multiplicador(MULTIPLICADOR_AMP);
+            status_ = Q_HANDLED();
             break;
         }
         default: {

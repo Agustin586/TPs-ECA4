@@ -80,6 +80,12 @@ void setEvt_init(void);
 
 //${Shared_Awg::setEvt_Multiplicador} ........................................
 void setEvt_Multiplicador(void);
+
+//${Shared_Awg::Multiplador_t} ...............................................
+enum Multiplador_t {
+    MULTIPLICADOR_FREQ = 0,
+    MULTIPLICADOR_AMP,
+};
 //$enddecl${Shared_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #endif
