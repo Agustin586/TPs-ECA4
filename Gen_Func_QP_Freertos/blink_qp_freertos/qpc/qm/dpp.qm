@@ -73,6 +73,322 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Blinky_initial));
 QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
   </operation>
  </package>
+ <!--${AOs_Awg}-->
+ <package name="AOs_Awg" stereotype="0x02">
+  <!--${AOs_Awg::Awg}-->
+  <class name="Awg" superclass="qpc::QActive">
+   <!--${AOs_Awg::Awg::time1segEvt}-->
+   <attribute name="time1segEvt" type="QTimeEvt" visibility="0x00" properties="0x00"/>
+   <!--${AOs_Awg::Awg::inst}-->
+   <attribute name="inst" type="Awg" visibility="0x00" properties="0x01"/>
+   <!--${AOs_Awg::Awg::avanc_evt}-->
+   <attribute name="avanc_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de avance declaro estatico</documentation>
+    <code>= QEVT_INITIALIZER(AVANC_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::encoder_evt}-->
+   <attribute name="encoder_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de encoder declarado estatico</documentation>
+    <code>= QEVT_INITIALIZER(ENCODER_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::init_evt}-->
+   <attribute name="init_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de init estatico</documentation>
+    <code>= QEVT_INITIALIZER(INIT_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::confirm_evt}-->
+   <attribute name="confirm_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <documentation>Evento de confirmacion estatico</documentation>
+    <code>= QEVT_INITIALIZER(CONFIRM_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::atras_evt}-->
+   <attribute name="atras_evt" type="QEvt const " visibility="0x00" properties="0x01">
+    <documentation>Evento estatico de atras</documentation>
+    <code>= QEVT_INITIALIZER(ATRAS_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::multiplicador_evt}-->
+   <attribute name="multiplicador_evt" type="QEvt const" visibility="0x00" properties="0x01">
+    <code>= QEVT_INITIALIZER(MULTIPLICADOR_SIG);</code>
+   </attribute>
+   <!--${AOs_Awg::Awg::SM}-->
+   <statechart properties="0x00">
+    <!--${AOs_Awg::Awg::SM::initial}-->
+    <initial target="../1">
+     <action>awg_config();</action>
+     <initial_glyph conn="19,2,5,0,22,4">
+      <action box="0,-2,13,4"/>
+     </initial_glyph>
+    </initial>
+    <!--${AOs_Awg::Awg::SM::Reset}-->
+    <state name="Reset">
+     <entry>awg_reset();</entry>
+     <!--${AOs_Awg::Awg::SM::Reset::INIT}-->
+     <tran trig="INIT" target="../../2">
+      <tran_glyph conn="41,16,2,0,7">
+       <action box="1,1,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="31,6,20,10">
+      <entry box="1,2,12,4"/>
+     </state_glyph>
+    </state>
+    <!--${AOs_Awg::Awg::SM::Configuracion}-->
+    <state name="Configuracion">
+     <!--${AOs_Awg::Awg::SM::Configuracion::initial}-->
+     <initial target="../1">
+      <initial_glyph conn="14,27,5,0,6,1">
+       <action box="0,-2,10,2"/>
+      </initial_glyph>
+     </initial>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}-->
+     <state name="Tipo_Func">
+      <documentation>Se elije el tipo de senial</documentation>
+      <entry>awg_resetEnc();
+printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}-->
+      <tran trig="AVANC" target="../../2">
+       <tran_glyph conn="27,33,1,3,8">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Func();</action>
+       <tran_glyph conn="13,39,3,-1,11">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="13,28,14,13">
+       <entry box="1,2,13,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Freq}-->
+     <state name="Freq">
+      <documentation>Se configura la frecuencia</documentation>
+      <entry>awg_resetEnc();
+printf(&quot;Estado: config freq.\n&quot;);</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}-->
+      <tran trig="AVANC" target="../../3">
+       <tran_glyph conn="51,33,1,3,8">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Freq();</action>
+       <tran_glyph conn="35,39,3,-1,11">
+        <action box="0,-4,11,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ATRAS}-->
+      <tran trig="ATRAS" target="../../1">
+       <tran_glyph conn="35,36,3,1,-8">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Freq::MULTIPLICADOR}-->
+      <tran trig="MULTIPLICADOR">
+       <tran_glyph conn="35,42,3,-1,13">
+        <action box="0,-2,13,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="35,28,16,15">
+       <entry box="1,2,13,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud}-->
+     <state name="Amplitud">
+      <documentation>Se configura la amplitud de la funcion</documentation>
+      <entry>awg_resetEnc();
+printf(&quot;Estado: config Amp.\n&quot;);</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}-->
+      <tran trig="AVANC" target="../../4">
+       <tran_glyph conn="73,33,1,1,3,16,-2">
+        <action box="0,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Amp();</action>
+       <tran_glyph conn="59,39,3,-1,11">
+        <action box="0,-4,11,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ATRAS}-->
+      <tran trig="ATRAS" target="../../2">
+       <tran_glyph conn="59,36,3,1,-8">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="59,28,14,13">
+       <entry box="1,2,13,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Offset}-->
+     <state name="Offset">
+      <documentation>Se configura el offset de la funcion</documentation>
+      <entry>awg_resetEnc();
+printf(&quot;Estado: config offset.\n&quot;);</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}-->
+      <tran trig="ENCODER">
+       <action>awg_Offset();</action>
+       <tran_glyph conn="60,55,3,-1,12">
+        <action box="0,-4,12,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::AVANC}-->
+      <tran trig="AVANC" target="../../5">
+       <tran_glyph conn="60,50,3,1,-10">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ATRAS}-->
+      <tran trig="ATRAS" target="../../3">
+       <tran_glyph conn="74,53,1,1,3,-17,-4">
+        <action box="0,0,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="60,44,14,13">
+       <entry box="1,2,13,4"/>
+      </state_glyph>
+     </state>
+     <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config}-->
+     <state name="Confirm_config">
+      <entry>printf(&quot;Estado: confirmacion config.\n&quot;);</entry>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}-->
+      <tran trig="CONFIRM">
+       <action>awg_enableOutput();</action>
+       <tran_glyph conn="34,56,3,-1,12">
+        <action box="0,-4,17,4"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC}-->
+      <tran trig="AVANC">
+       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==1]}-->
+       <choice target="../../../../3">
+        <guard brief="fin_config==1">awg_reconfig() == 1</guard>
+        <choice_glyph conn="22,50,4,0,9,21,2">
+         <action box="1,9,11,2"/>
+        </choice_glyph>
+       </choice>
+       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::AVANC::[fin_config==0]}-->
+       <choice target="../../../1">
+        <guard brief="fin_config==0">awg_reconfig() == 0</guard>
+        <choice_glyph conn="22,50,5,2,-3,-9">
+         <action box="-2,-5,12,2"/>
+        </choice_glyph>
+       </choice>
+       <tran_glyph conn="34,50,3,-1,-12">
+        <action box="-5,-2,10,2"/>
+       </tran_glyph>
+      </tran>
+      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::ATRAS}-->
+      <tran trig="ATRAS" target="../../4">
+       <tran_glyph conn="50,53,1,3,10">
+        <action box="0,0,10,2"/>
+       </tran_glyph>
+      </tran>
+      <state_glyph node="34,46,16,11">
+       <entry box="1,2,6,2"/>
+      </state_glyph>
+     </state>
+     <state_glyph node="11,23,73,35"/>
+    </state>
+    <!--${AOs_Awg::Awg::SM::Salida}-->
+    <state name="Salida">
+     <entry>awg_start();
+//awg_display();</entry>
+     <exit>awg_ledOff();</exit>
+     <!--${AOs_Awg::Awg::SM::Salida::TIMER_1SEG}-->
+     <tran trig="TIMER_1SEG">
+      <action>awg_blink();</action>
+      <tran_glyph conn="31,78,3,-1,12">
+       <action box="0,-4,15,4"/>
+      </tran_glyph>
+     </tran>
+     <!--${AOs_Awg::Awg::SM::Salida::AVANC}-->
+     <tran trig="AVANC" target="../../2/1">
+      <action>awg_stop();</action>
+      <tran_glyph conn="42,79,2,3,3,-34,-49,5">
+       <action box="-25,-1,12,4"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="31,61,23,18">
+      <entry box="1,2,13,6"/>
+      <exit box="1,8,13,4"/>
+     </state_glyph>
+    </state>
+    <state_diagram size="105,96"/>
+   </statechart>
+  </class>
+ </package>
+ <!--${Shared_Awg}-->
+ <package name="Shared_Awg" stereotype="0x00">
+  <!--${Shared_Awg::setEvt_Econder}-->
+  <operation name="setEvt_Econder" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de encoder</documentation>
+   <code>// Crear el evento ENCODER y enviarlo
+//QEvt *encoder_evt = Q_NEW(QEvt, ENCODER_SIG);  // Crear el evento con la señal ENCODER_SIG
+
+// Enviar el evento a la máquina de estados activa (AO: Active Object)
+//QACTIVE_POST(AO_Awg, &amp;Awg_encoder_evt, 0);
+
+QACTIVE_POST(AO_Awg, &amp;Awg_encoder_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Confirm}-->
+  <operation name="setEvt_Confirm" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de confirmacion</documentation>
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_confirm_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Init}-->
+  <operation name="setEvt_Init" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de init</documentation>
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_init_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::Awg_ctor}-->
+  <operation name="Awg_ctor" type="void" visibility="0x00" properties="0x00">
+   <documentation>Constructor del objeto activo awg</documentation>
+   <code>Awg * const me = &amp;Awg_inst;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
+//QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Avanc}-->
+  <operation name="setEvt_Avanc" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento de avance</documentation>
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_avanc_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::AwgSignals}-->
+  <attribute name="AwgSignals" type="enum" visibility="0x04" properties="0x00">
+   <documentation>Señales del objeto activo Awg</documentation>
+   <code>{
+    ENCODER_SIG = Q_USER_SIG,
+    INIT_SIG,
+    AVANC_SIG,
+    ATRAS_SIG,
+    CONFIRM_SIG,
+    TIMER_1SEG_SIG,
+    MULTIPLICADOR_SIG,
+};</code>
+  </attribute>
+  <!--${Shared_Awg::AO_Awg}-->
+  <attribute name="AO_Awg" type="QActive * const" visibility="0x00" properties="0x00">
+   <documentation>Instancia del objeto activo Awg</documentation>
+   <code>= &amp;Awg_inst.super;</code>
+  </attribute>
+  <!--${Shared_Awg::setEvt_Atras}-->
+  <operation name="setEvt_Atras" type="void" visibility="0x00" properties="0x00">
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_atras_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_init}-->
+  <operation name="setEvt_init" type="void" visibility="0x00" properties="0x00">
+   <documentation>Setea el evento init</documentation>
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_init_evt, 0);</code>
+  </operation>
+  <!--${Shared_Awg::setEvt_Multiplicador}-->
+  <operation name="setEvt_Multiplicador" type="void" visibility="0x00" properties="0x00">
+   <code>QACTIVE_POST(AO_Awg, &amp;Awg_multiplicador_evt, 0);</code>
+  </operation>
+ </package>
  <!--${.}-->
  <directory name=".">
   <!--${.::dpp.h}-->
@@ -111,6 +427,34 @@ $declare ${AO::Blinky}
 $define ${Shared_Blink}
 
 $define ${AO::Blinky}</text>
+  </file>
+  <!--${.::mef_awg.h}-->
+  <file name="mef_awg.h">
+   <text>#include &quot;qpc.h&quot;
+
+#ifndef MEF_AWG_H_
+#define MEF_AWG_H_
+
+//$declare ${AOs_Awg} 
+
+$declare ${Shared_Awg} 
+
+#endif </text>
+  </file>
+  <!--${.::mef_awg.c}-->
+  <file name="mef_awg.c">
+   <text>#include &quot;mef_awg.h&quot;
+#include &quot;awg.h&quot;
+#include &quot;bsp.h&quot;
+
+
+$declare${AOs_Awg::Awg}
+
+$define${Shared_Awg}
+
+$define${AOs_Awg::Awg}
+
+//$define ${AOs_Awg}</text>
   </file>
  </directory>
 </model>
