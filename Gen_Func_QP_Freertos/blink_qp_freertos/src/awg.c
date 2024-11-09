@@ -8,14 +8,19 @@
 #include "hardware/gpio.h"
 #include "prog_pio.pio.h" // Our assembled PIO program
 
+// Archivo de la mef
 #include "mef_awg.h"
 
+// Archivo de freertos
 // #include "FreeRTOS.h"
 // #include "FreeRTOSConfig.h"
 // #include "freertos/include/task.h"
 #include <FreeRTOS.h>
 #include <task.h>
 #include <timers.h>
+
+// Archivo de la pantalla
+#include "display.h"
 
 #define OUT_PIN_NUMBER 8
 #define BUFFER_DEPTH 4096
@@ -39,16 +44,16 @@
 #define AMP_MIN_CUENTAS 0
 #define VOLTAJE_MAX 1.65
 #define VOLTAJE_MIN 0
-#define AMPLITUD_EN_VOLTAJE(x) x *AMP_MAX_CUENTAS / VOLTAJE_MAX
+#define AMPLITUD_EN_VOLTAJE(x) (x * AMP_MAX_CUENTAS / VOLTAJE_MAX)
 // Conversion de offset
 #define OFFSET_MAX_CUENTAS 127
 #define OFFSET_MIN_CUENTAS 0
-#define OFFSET_EN_VOLTAJE(X) X *OFFSET_MAX_CUENTAS / VOLTAJE_MAX
+#define OFFSET_EN_VOLTAJE(X) (X * OFFSET_MAX_CUENTAS / VOLTAJE_MAX)
 
 // Parametros maximos
 #define FREQ_MAX 1500000
 #define FREQ_MIN 1
-#define AMPLITUD_SALIDA_MAX 12
+#define AMPLITUD_SALIDA_MAX 6
 #define AMPLITUD_SALIDA_MIN 1.67
 #define OFFSET_SALIDA_MAX 6
 #define OFFSET_SALIDA_MIN 0
@@ -56,17 +61,21 @@
 // Definimos los multiplicadores de frecuencia
 typedef enum
 {
-    MULT_HZ = 0,
-    MULT_KHZ,
-    MULT_MHZ,
+    MULT_FREQ_X_1 = 0,
+    MULT_FREQ_X_10,
+    MULT_FREQ_X_100,
+    MULT_FREQ_X_1000,
+    MULT_FREQ_X_10000,
+    MULT_FREQ_X_100000,
+    MULT_FREQ_X_1000000,
 } MultFreq_t;
 
 // Definimos los multiplicadores de amplitud
 typedef enum
 {
-    V = 0,
-    mV,
-    uV,
+    MULT_AMP_X_1 = 0,
+    MULT_AMP_X_0_1,
+    MULT_AMP_X_0_01,
 } MultAmp_t;
 
 // Definimos los tipos de señal
@@ -259,6 +268,9 @@ static bool getState_Pulsador(uint16_t pin);
  * @brief Funcion de interrupcion de pines.
  */
 static void encoder_isrA(uint gpio, uint32_t events);
+/**
+ * @brief ISR del pin B.
+ */
 static void encoder_isrB(uint gpio, uint32_t events);
 /*-------------------------------------------------------------------------------------------*/
 // FREERTOS FUNCTIONS DECLARED ================================================================
@@ -292,10 +304,10 @@ extern void awg_config(void)
     init_timers();
 
     /* Configura la señal. */
-    signal_ch1.type = SIGNAL_SINE;                           // Tipo de señal
-    signal_ch1.frequency = 1000;                             // Frecuencia
-    signal_ch1.amplitude = AMPLITUD_EN_VOLTAJE(VOLTAJE_MAX); // Amplitud
-    signal_ch1.offset = OFFSET_EN_VOLTAJE(VOLTAJE_MAX);      // Offset
+    signal_ch1.type = SIGNAL_SINE;              // Tipo de señal
+    signal_ch1.frequency = 1000;                // Frecuencia
+    signal_ch1.amplitude = AMPLITUD_SALIDA_MIN; // Amplitud
+    signal_ch1.offset = 0;                      // Offset
 
     /* Configura el pwm. */
 
@@ -305,9 +317,9 @@ extern void awg_config(void)
     /* Configuracion del selector. */
     selector.cont = 0;
     selector.direccion = SENTIDO_HORARIO;
-    selector.multAmpl = V;
-    selector.multFreq = MULT_HZ;
-    selector.multOffset = V;
+    selector.multAmpl = MULT_AMP_X_1;
+    selector.multFreq = MULT_FREQ_X_1;
+    selector.multOffset = MULT_AMP_X_1;
 
     // Inicializamos una señal sinusoidal con 1000 Hz, amplitud 1.0 y offset 0.0
     // init_signal(&signal_ch1, SIGNAL_SINE, 1000, 127, 128, 0.0, 0.0, 0.0);
@@ -326,7 +338,7 @@ extern void awg_config(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Func(void)
 {
-    // printf("Estado: tipo de funcion.\n");
+    printf("\nEstado: tipo de funcion.\n");
 
     // Deteccion del encoder ...
     // Seleccionamos el tipo de funcion
@@ -360,42 +372,65 @@ extern void awg_Func(void)
         break;
     }
 
+    // Informa a la pantalla nextion
+    display_func();
+
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Freq(void)
 {
-    // printf("Estado: config freq.\n");
+    printf("\nEstado: config freq.\n");
+
     float freq_new = signal_ch1.frequency;
 
     /* Deteccion del evento encoder. */
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multFreq == MULT_HZ)
+        if (selector.multFreq == MULT_FREQ_X_1)
             freq_new += 1;
-        else if (selector.multFreq == MULT_KHZ)
+        else if (selector.multFreq == MULT_FREQ_X_10)
+            freq_new += 10;
+        else if (selector.multFreq == MULT_FREQ_X_100)
+            freq_new += 100;
+        else if (selector.multFreq == MULT_FREQ_X_1000)
             freq_new += 1000;
-        else if (selector.multFreq == MULT_MHZ)
+        else if (selector.multFreq == MULT_FREQ_X_10000)
+            freq_new += 10000;
+        else if (selector.multFreq == MULT_FREQ_X_100000)
+            freq_new += 100000;
+        else if (selector.multFreq == MULT_FREQ_X_1000000)
             freq_new += 1000000;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multFreq == MULT_HZ)
+        if (selector.multFreq == MULT_FREQ_X_1)
             freq_new -= 1;
-        else if (selector.multFreq == MULT_KHZ)
+        else if (selector.multFreq == MULT_FREQ_X_10)
+            freq_new -= 10;
+        else if (selector.multFreq == MULT_FREQ_X_100)
+            freq_new -= 100;
+        else if (selector.multFreq == MULT_FREQ_X_1000)
             freq_new -= 1000;
-        else if (selector.multFreq == MULT_MHZ)
+        else if (selector.multFreq == MULT_FREQ_X_10000)
+            freq_new -= 10000;
+        else if (selector.multFreq == MULT_FREQ_X_100000)
+            freq_new -= 100000;
+        else if (selector.multFreq == MULT_FREQ_X_1000000)
             freq_new -= 1000000;
     }
 
     // Limites
     if (freq_new > FREQ_MAX)
-        freq_new = FREQ_MAX;
+        freq_new = signal_ch1.frequency; // No carga nuevo dato
     else if (freq_new < FREQ_MIN)
-        freq_new = FREQ_MIN;
+        freq_new = signal_ch1.frequency; // No carga nuevo dato
 
     // Carga la informacion en la señal
     config_freq(&signal_ch1, freq_new);
+
+    // Cargamos la informacion en la pantalla
+    display_freq();
 
     printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
 
@@ -404,58 +439,68 @@ extern void awg_Freq(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Amp(void)
 {
-    // printf("Estado: config Amp.\n");
+    printf("\nEstado: config Amp.\n");
 
     float amp_new = signal_ch1.amplitude;
 
     // Detecta el evento de amplitud
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multAmpl == V)
+        if (selector.multAmpl == MULT_AMP_X_1)
             amp_new += 1;
-        else if (selector.multAmpl == mV)
+        else if (selector.multAmpl == MULT_AMP_X_0_1)
             amp_new += 0.1;
+        else if (selector.multAmpl == MULT_AMP_X_0_01)
+            amp_new += 0.01;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multAmpl == V)
+        if (selector.multAmpl == MULT_AMP_X_1)
             amp_new -= 1;
-        else if (selector.multAmpl == mV)
+        else if (selector.multAmpl == MULT_AMP_X_0_1)
             amp_new -= 0.1;
+        else if (selector.multAmpl == MULT_AMP_X_0_01)
+            amp_new -= 0.01;
     }
+
+    printf("Amplitud: %.2f.\n", amp_new);
 
     // Limites
     if (amp_new > AMPLITUD_SALIDA_MAX)
-        amp_new = AMPLITUD_SALIDA_MAX;
+        amp_new = signal_ch1.amplitude;
     else if (amp_new < AMPLITUD_SALIDA_MIN)
-        amp_new = AMPLITUD_SALIDA_MIN;
+        amp_new = signal_ch1.amplitude;
 
     // Carga la informacion
     config_amplitude(&signal_ch1, amp_new);
 
-    printf("Amplitud: %.2f.\n", amp_new);
+    // Cargamos la informacion en la pantalla
+    display_amp();
+
+    printf("Amplitud: %.2f.\n", signal_ch1.amplitude);
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Offset(void)
 {
-    // printf("Estado: config offset.\n");
+    printf("Estado: config offset.\n");
+
     float offset_new = signal_ch1.offset;
 
     // Detecta el evento del offset
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multOffset == V)
+        if (selector.multOffset == MULT_AMP_X_1)
             offset_new += 1;
-        else if (selector.multOffset == mV)
+        else if (selector.multOffset == MULT_AMP_X_0_1)
             offset_new += 0.1;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multOffset == V)
+        if (selector.multOffset == MULT_AMP_X_1)
             offset_new -= 1;
-        else if (selector.multOffset == mV)
+        else if (selector.multOffset == MULT_AMP_X_0_1)
             offset_new -= 0.1;
     }
 
@@ -468,6 +513,9 @@ extern void awg_Offset(void)
     // Carga la informacion
     config_offset(&signal_ch1, offset_new);
 
+    // Cargamos la informacion en la pantalla
+    display_offset();
+
     printf("Offset: %.2f.\n", offset_new);
 
     return;
@@ -476,6 +524,9 @@ extern void awg_Offset(void)
 extern void awg_enableOutput(void)
 {
     // printf("Estado: confirmacion config.\n");
+
+    // Cargamos la informacion en la pantalla
+    display_salida();
 
     return;
 }
@@ -503,7 +554,9 @@ extern void awg_resetEnc(void)
 {
     printf("Check: reset encoder.\n");
 
+    /* Configuracion del selector. */
     selector.cont = 0;
+    selector.direccion = SENTIDO_HORARIO;
 
     return;
 }
@@ -532,18 +585,27 @@ extern void awg_multiplicador(uint8_t tipo)
     {
     case MULTIPLICADOR_FREQ:
         selector.multFreq += 1;
-        if (selector.multFreq > MULT_MHZ)
-            selector.multFreq = MULT_HZ;
+        if (selector.multFreq > MULT_FREQ_X_1000000)
+            selector.multFreq = MULT_FREQ_X_1;
+
+        printf("Multiplicador Freq: %d\n", selector.multFreq);
+
         break;
     case MULTIPLICADOR_AMP:
         selector.multAmpl += 1;
-        if (selector.multAmpl > mV)
-            selector.multAmpl = V;
+        if (selector.multAmpl > MULT_AMP_X_0_01)
+            selector.multAmpl = MULT_AMP_X_1;
+
+        printf("Multiplicador Amp: %d\n", selector.multAmpl);
+
         break;
     case MULTIPLICADOR_OFFSET:
         selector.multOffset += 1;
-        if (selector.multOffset > mV)
-            selector.multOffset = V;
+        if (selector.multOffset > MULT_AMP_X_0_01)
+            selector.multOffset = MULT_AMP_X_1;
+
+        printf("Multiplicador Offset: %d\n", selector.multFreq);
+
         break;
     default:
         break;
@@ -573,33 +635,37 @@ static void prvTaskRtos_encoder(void *pvParameters)
 
     for (;;)
     {
-        ulNotificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        ulNotificationValue = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(100));
 
         if (ulNotificationValue == 1)
         {
             int channel_a_state = gpio_get(ENCODER_PIN_A);
             int channel_b_state = gpio_get(ENCODER_PIN_B);
 
-            printf("A: %d, B: %d\n", channel_a_state, channel_b_state);
+            // printf("A: %d, B: %d\n", channel_a_state, channel_b_state);
 
             // Determina la dirección del giro según los estados de A y B
             // Flanco descendente de A
-            if (channel_b_state)
+            if (!channel_b_state)
             {
                 if (selector.cont < 65535)
                     selector.cont++;
+
+                selector.direccion = SENTIDO_HORARIO;
                 // encoder_position++;
                 // encoder_direction = 1; // Sentido horario
             }
-            else if (!channel_b_state)
+            else if (channel_b_state)
             {
                 if (selector.cont > 0)
                     selector.cont--;
+
+                selector.direccion = SENTIDO_ANTIHORARIO;
                 // encoder_position--;
                 // encoder_direction = -1; // Sentido antihorario
             }
 
-            printf("Valor Enconder: %d\n", selector.cont);
+            // printf("Valor Enconder: %d\n", selector.cont);
 
             if (timer_Antirrebote != NULL)
             {
