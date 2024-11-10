@@ -22,6 +22,9 @@
 // Archivo de la pantalla
 #include "display.h"
 
+// Archivo de potenciometro
+#include "X9C103S.h"
+
 #define OUT_PIN_NUMBER 8
 #define BUFFER_DEPTH 4096
 #define NPINS 8
@@ -77,6 +80,13 @@ typedef enum
     MULT_AMP_X_0_1,
     MULT_AMP_X_0_01,
 } MultAmp_t;
+
+typedef enum
+{
+    MULT_OFFSET_X_1 = 0,
+    MULT_OFFSET_X_0_1,
+    MULT_OFFSET_X_0_01,
+} MultOffset_t;
 
 // Definimos los tipos de señal
 typedef enum
@@ -159,21 +169,24 @@ typedef struct
 
 Selector_t selector;
 
-// Pio config
+// POTE DIGITAL: VARIABLES
+X9C103S potenciometro;
+
+// PIO: VARIABLES
 uint sm;
 uint offset;
 PIO pio = pio0;
 uint SM_CLK_FREQ = 125000000; // Frecuencia de la maquina de estado.
 
-// Configuraciones de dma
-// wave_dma_chan_a and wave_dma_chan_b loads AWG buffer table to PIO in ping pong method
+// DMA: VARIABLES
 int wave_dma_chan_a;
 int wave_dma_chan_b;
-
 dma_channel_config wave_dma_chan_a_config;
 dma_channel_config wave_dma_chan_b_config;
 
+// FREERTOS: VARIABLES
 TimerHandle_t timer_Antirrebote;
+TaskHandle_t handle_Encoder;
 
 // PRIVATE FUNCTIONS DECLARED ==================================================================
 /**
@@ -272,7 +285,6 @@ static void encoder_isrA(uint gpio, uint32_t events);
  * @brief ISR del pin B.
  */
 static void encoder_isrB(uint gpio, uint32_t events);
-/*-------------------------------------------------------------------------------------------*/
 // FREERTOS FUNCTIONS DECLARED ================================================================
 /**
  * @brief Tarea de awg de freertos.
@@ -290,8 +302,6 @@ static void prvTaskRtos_pulsadores(void *pvParameters);
  * @brief Timer por software para antirrebote de encoder.
  */
 static void prvTimerRtos_Antirrebote(TimerHandle_t xTimer);
-
-TaskHandle_t handle_Encoder;
 
 // EXTERN FUNCTIONS ===========================================================================
 /*-------------------------------------------------------------------------------------------*/
@@ -320,6 +330,10 @@ extern void awg_config(void)
     selector.multAmpl = MULT_AMP_X_1;
     selector.multFreq = MULT_FREQ_X_1;
     selector.multOffset = MULT_AMP_X_1;
+
+    // /* Configura el pote digital. */
+    // X9C103S_init(&potenciometro);
+    // X9C103S_set_resistance(&potenciometro, 2000.0);   // Setea en la mitad
 
     // Inicializamos una señal sinusoidal con 1000 Hz, amplitud 1.0 y offset 0.0
     // init_signal(&signal_ch1, SIGNAL_SINE, 1000, 127, 128, 0.0, 0.0, 0.0);
@@ -491,17 +505,21 @@ extern void awg_Offset(void)
     // Detecta el evento del offset
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multOffset == MULT_AMP_X_1)
+        if (selector.multOffset == MULT_OFFSET_X_1)
             offset_new += 1;
-        else if (selector.multOffset == MULT_AMP_X_0_1)
+        else if (selector.multOffset == MULT_OFFSET_X_0_1)
             offset_new += 0.1;
+        else if (selector.multOffset == MULT_OFFSET_X_0_01)
+            offset_new += 0.01;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multOffset == MULT_AMP_X_1)
+        if (selector.multOffset == MULT_OFFSET_X_1)
             offset_new -= 1;
-        else if (selector.multOffset == MULT_AMP_X_0_1)
+        else if (selector.multOffset == MULT_OFFSET_X_0_1)
             offset_new -= 0.1;
+        else if (selector.multOffset == MULT_OFFSET_X_0_01)
+            offset_new -= 0.01;
     }
 
     // Limites
@@ -613,11 +631,29 @@ extern void awg_multiplicador(uint8_t tipo)
 
     return;
 }
+/*-------------------------------------------------------------------------------------------*/
+extern float get_frequency(void)
+{
+    return signal_ch1.frequency;
+}
+/*-------------------------------------------------------------------------------------------*/
+extern float get_amplitude(void)
+{
+    return signal_ch1.amplitude;
+}
+/*-------------------------------------------------------------------------------------------*/
+extern float get_offset(void)
+{
+    return signal_ch1.offset;
+}
 
 // PRIVATE FUNCTIONS FREERTOS =================================================================
 /*-------------------------------------------------------------------------------------------*/
 static void prvTaskRtos_awg(void *pvParameters)
 {
+    /* Configura el pote digital. */
+    X9C103S_init(&potenciometro);
+    X9C103S_set_resistance(&potenciometro, 1000.0);   // Setea en la mitad
 
     for (;;)
     {
