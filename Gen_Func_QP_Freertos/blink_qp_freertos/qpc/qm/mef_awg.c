@@ -59,6 +59,10 @@ extern QEvt const  Awg_atras_evt;
 
 extern QEvt const Awg_multiplicador_evt;
 
+extern uint8_t Awg_StateConfig;
+
+extern QEvt const  Awg_stop_evt;
+
 // protected:
 static QState Awg_initial(Awg * const me, void const * const par);
 static QState Awg_Reset(Awg * const me, QEvt const * const e);
@@ -129,6 +133,16 @@ void setEvt_init(void) {
 void setEvt_Multiplicador(void) {
     QACTIVE_POST(AO_Awg, &Awg_multiplicador_evt, 0);
 }
+
+//${Shared_Awg::getCurrentState} .............................................
+uint8_t getCurrentState(void) {
+    return Awg_StateConfig;
+}
+
+//${Shared_Awg::setEvtStop} ..................................................
+void setEvtStop(void) {
+    QACTIVE_POST(AO_Awg, &Awg_stop_evt, 0);
+}
 //$enddef${Shared_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 //$define${AOs_Awg::Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -146,6 +160,10 @@ QEvt const Awg_confirm_evt = QEVT_INITIALIZER(CONFIRM_SIG);
 QEvt const  Awg_atras_evt = QEVT_INITIALIZER(ATRAS_SIG);
 
 QEvt const Awg_multiplicador_evt = QEVT_INITIALIZER(MULTIPLICADOR_SIG);
+
+uint8_t Awg_StateConfig = CONFIG_FUNCION;
+
+QEvt const  Awg_stop_evt = QEVT_INITIALIZER(STOP_SIG);
 
 
 //${AOs_Awg::Awg::SM} ........................................................
@@ -201,6 +219,7 @@ static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = CONFIG_FUNCION;
             awg_resetEnc();
             printf("Estado: tipo de funcion.\n");
             status_ = Q_HANDLED();
@@ -231,6 +250,7 @@ static QState Awg_Freq(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::Freq}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = CONFIG_FREQ;
             awg_resetEnc();
             printf("Estado: config freq.\n");
             status_ = Q_HANDLED();
@@ -272,6 +292,7 @@ static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::Amplitud}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = CONFIG_AMP;
             awg_resetEnc();
             printf("Estado: config Amp.\n");
             status_ = Q_HANDLED();
@@ -313,6 +334,7 @@ static QState Awg_Offset(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::Offset}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = CONFIG_OFFSET;
             awg_resetEnc();
             printf("Estado: config offset.\n");
             status_ = Q_HANDLED();
@@ -354,6 +376,7 @@ static QState Awg_Confirm_config(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::Confirm_config}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = CONFIG_CONFIRM;
             printf("Estado: confirmacion config.\n");
             status_ = Q_HANDLED();
             break;
@@ -398,6 +421,7 @@ static QState Awg_Salida(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Salida}
         case Q_ENTRY_SIG: {
+            Awg_StateConfig = SALIDA_EN;
             awg_start();
             //awg_display();
             status_ = Q_HANDLED();
@@ -415,8 +439,8 @@ static QState Awg_Salida(Awg * const me, QEvt const * const e) {
             status_ = Q_HANDLED();
             break;
         }
-        //${AOs_Awg::Awg::SM::Salida::AVANC}
-        case AVANC_SIG: {
+        //${AOs_Awg::Awg::SM::Salida::STOP}
+        case STOP_SIG: {
             awg_stop();
             status_ = Q_TRAN(&Awg_Tipo_Func);
             break;

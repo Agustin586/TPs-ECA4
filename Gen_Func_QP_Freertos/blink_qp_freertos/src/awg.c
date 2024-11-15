@@ -39,6 +39,8 @@
 #define ENCODER_PIN_B 5
 // Define el pin del multiplicador
 #define MULTIPLICADOR_PIN 3
+// Pin buzzer
+#define BUZZER_PIN 22
 // Sentido de giro
 #define SENTIDO_HORARIO 1
 #define SENTIDO_ANTIHORARIO -1
@@ -188,6 +190,11 @@ dma_channel_config wave_dma_chan_b_config;
 TimerHandle_t timer_Antirrebote;
 TaskHandle_t handle_Encoder;
 
+// PINS: VARIABLES
+volatile bool channel_a_state;
+volatile bool channel_b_state;
+volatile uint8_t pin;
+
 // PRIVATE FUNCTIONS DECLARED ==================================================================
 /**
  * @brief Inicializa las tareas de freertos.
@@ -256,6 +263,10 @@ static void fill_sine_wave(SignalGenerator *sg);
  */
 static void fill_square_wave(SignalGenerator *sg);
 /**
+ * @brief Genera la señal triangular.
+ */
+static void fill_triangle_wave(SignalGenerator *sg);
+/**
  * @brief Configuracion de frecuencia.
  */
 static void config_freq(SignalGenerator *sg, float freq);
@@ -318,6 +329,8 @@ extern void awg_config(void)
     signal_ch1.frequency = 1000;                // Frecuencia
     signal_ch1.amplitude = AMPLITUD_SALIDA_MIN; // Amplitud
     signal_ch1.offset = 0;                      // Offset
+    signal_ch1.duty_cycle = .5;
+    signal_ch1.polarity = -1;
 
     /* Configura el pwm. */
 
@@ -336,14 +349,16 @@ extern void awg_config(void)
     // X9C103S_set_resistance(&potenciometro, 2000.0);   // Setea en la mitad
 
     // Inicializamos una señal sinusoidal con 1000 Hz, amplitud 1.0 y offset 0.0
-    // init_signal(&signal_ch1, SIGNAL_SINE, 1000, 127, 128, 0.0, 0.0, 0.0);
-    // init_signal_params(&signal_ch1, BUFFER_DEPTH);
+    // init_signal(&signal_ch1, SIGNAL_TRIANGLE, 1000, 127, 128, 0.5, 0.0, 0.0);
+    init_signal_params(&signal_ch1, BUFFER_DEPTH);
 
     // select_freq(&signal_ch1); // Configura la frecuencia del SM.
 
     // generate_signal(&signal_ch1);
 
-    // init_config();
+    init_config();
+
+    pio_sm_set_enabled(pio, sm, false);
 
     printf("Check: Configuracion del awg.\n");
 
@@ -387,7 +402,7 @@ extern void awg_Func(void)
     }
 
     // Informa a la pantalla nextion
-    display_func();
+    // display_func();
 
     return;
 }
@@ -444,7 +459,7 @@ extern void awg_Freq(void)
     config_freq(&signal_ch1, freq_new);
 
     // Cargamos la informacion en la pantalla
-    display_freq();
+    // display_freq();
 
     printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
 
@@ -477,7 +492,7 @@ extern void awg_Amp(void)
             amp_new -= 0.01;
     }
 
-    printf("Amplitud: %.2f.\n", amp_new);
+    // printf("Amplitud: %.2f.\n", amp_new);
 
     // Limites
     if (amp_new > AMPLITUD_SALIDA_MAX)
@@ -489,7 +504,7 @@ extern void awg_Amp(void)
     config_amplitude(&signal_ch1, amp_new);
 
     // Cargamos la informacion en la pantalla
-    display_amp();
+    // display_amp();
 
     printf("Amplitud: %.2f.\n", signal_ch1.amplitude);
 
@@ -532,7 +547,7 @@ extern void awg_Offset(void)
     config_offset(&signal_ch1, offset_new);
 
     // Cargamos la informacion en la pantalla
-    display_offset();
+    // display_offset();
 
     printf("Offset: %.2f.\n", offset_new);
 
@@ -544,7 +559,9 @@ extern void awg_enableOutput(void)
     // printf("Estado: confirmacion config.\n");
 
     // Cargamos la informacion en la pantalla
-    display_salida();
+    // display_salida();
+
+    signal_ch1.state_out = true;
 
     return;
 }
@@ -552,6 +569,12 @@ extern void awg_enableOutput(void)
 extern void awg_start(void)
 {
     printf("Estado: salida.\n");
+
+    select_freq(&signal_ch1); // Configura la frecuencia del SM.
+
+    generate_signal(&signal_ch1);
+
+    pio_sm_set_enabled(pio, sm, true);
 
     return;
 }
@@ -581,6 +604,8 @@ extern void awg_resetEnc(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_reset(void)
 {
+    signal_ch1.state_out = false;
+
     setEvt_init();
 
     return;
@@ -588,13 +613,16 @@ extern void awg_reset(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_stop(void)
 {
+    signal_ch1.state_out = false;
+
+    pio_sm_set_enabled(pio, sm, false);
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern int awg_reconfig(void)
 {
-    return 0;
+    return signal_ch1.state_out ? true : false;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_multiplicador(uint8_t tipo)
@@ -652,8 +680,8 @@ extern float get_offset(void)
 static void prvTaskRtos_awg(void *pvParameters)
 {
     /* Configura el pote digital. */
-    X9C103S_init(&potenciometro);
-    X9C103S_set_resistance(&potenciometro, 1000.0);   // Setea en la mitad
+    // X9C103S_init(&potenciometro);
+    // X9C103S_set_resistance(&potenciometro, 1000.0);   // Setea en la mitad
 
     for (;;)
     {
@@ -675,39 +703,34 @@ static void prvTaskRtos_encoder(void *pvParameters)
 
         if (ulNotificationValue == 1)
         {
-            int channel_a_state = gpio_get(ENCODER_PIN_A);
-            int channel_b_state = gpio_get(ENCODER_PIN_B);
-
             // printf("A: %d, B: %d\n", channel_a_state, channel_b_state);
 
             // Determina la dirección del giro según los estados de A y B
             // Flanco descendente de A
-            if (!channel_b_state)
+            gpio_put(BUZZER_PIN, 1);
+            vTaskDelay(pdMS_TO_TICKS(30));
+            gpio_put(BUZZER_PIN, 0);
+
+            if (!channel_b_state && !channel_a_state)
             {
                 if (selector.cont < 65535)
                     selector.cont++;
 
                 selector.direccion = SENTIDO_HORARIO;
-                // encoder_position++;
-                // encoder_direction = 1; // Sentido horario
+                setEvt_Econder();
             }
-            else if (channel_b_state)
+            else if (channel_b_state && !channel_a_state)
             {
                 if (selector.cont > 0)
                     selector.cont--;
 
                 selector.direccion = SENTIDO_ANTIHORARIO;
-                // encoder_position--;
-                // encoder_direction = -1; // Sentido antihorario
+                setEvt_Econder();
             }
-
-            // printf("Valor Enconder: %d\n", selector.cont);
 
             if (timer_Antirrebote != NULL)
             {
                 xTimerStart(timer_Antirrebote, 0); // Inicia el temporizador
-
-                setEvt_Econder();
             }
         }
     }
@@ -725,31 +748,46 @@ static void prvTaskRtos_pulsadores(void *pvParameters)
         {
             setEvt_Avanc();
 
+            gpio_put(BUZZER_PIN, 1);
+            vTaskDelay(pdMS_TO_TICKS(30));
+            gpio_put(BUZZER_PIN, 0);
+
             while (!getState_Pulsador(AVANCE_PIN))
             {
-                vTaskDelay(pdMS_TO_TICKS(5));
+                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
         else if (!getState_Pulsador(ATRAS_PIN))
         {
             setEvt_Atras();
 
+            gpio_put(BUZZER_PIN, 1);
+            vTaskDelay(pdMS_TO_TICKS(30));
+            gpio_put(BUZZER_PIN, 0);
+
             while (!getState_Pulsador(ATRAS_PIN))
             {
-                vTaskDelay(pdMS_TO_TICKS(5));
+                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
         else if (!getState_Pulsador(MULTIPLICADOR_PIN))
         {
-            setEvt_Multiplicador();
+            if (getCurrentState() != CONFIG_CONFIRM &&  getCurrentState() != SALIDA_EN)
+                setEvt_Multiplicador();
+            else if (getCurrentState() == CONFIG_CONFIRM)
+                setEvt_Confirm();
+            else if(getCurrentState() == SALIDA_EN)
+                setEvtStop();
+
+            gpio_put(BUZZER_PIN, 1);
+            vTaskDelay(pdMS_TO_TICKS(30));
+            gpio_put(BUZZER_PIN, 0);
 
             while (!getState_Pulsador(MULTIPLICADOR_PIN))
             {
-                vTaskDelay(pdMS_TO_TICKS(5));
+                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
-
-        vTaskDelay(pdMS_TO_TICKS(10));
     }
 
     vTaskDelete(NULL);
@@ -785,7 +823,7 @@ static void init_timers(void)
 {
     timer_Antirrebote = xTimerCreate(
         "Timer Antirrebote",
-        pdMS_TO_TICKS(30),
+        pdMS_TO_TICKS(20),
         pdFALSE,
         (void *)0,
         prvTimerRtos_Antirrebote);
@@ -918,13 +956,14 @@ static void generate_signal(SignalGenerator *sg)
     {
     case SIGNAL_SINE:
         // printf("se configuro la senoidal");
+        // fill_square_wave(sg);
         fill_sine_wave(sg);
         break;
     case SIGNAL_SQUARE:
-        // fill_square_wave(sg);
+        fill_square_wave(sg);
         break;
     case SIGNAL_TRIANGLE:
-        // fill_triangle_wave(sg);
+        fill_triangle_wave(sg);
         break;
     case SIGNAL_SAWTOOTH:
         // fill_sawtooth_wave(sg);
@@ -940,8 +979,8 @@ static void fill_sine_wave(SignalGenerator *sg)
 {
     for (int i = 0; i < sg->params.bufdepth; ++i)
     {
-        float factor = (float)(sg->params.numcycle * i) / sg->params.bufdepth;                 // Calcular el factor basado en la frecuencia y el índice
-        sg->params.buffer[i] = (uint8_t)(sg->offset + (sin(factor * TWO_PI) * sg->amplitude)); // Cálculo de la onda senoidal
+        float factor = (float)(sg->params.numcycle * i) / sg->params.bufdepth; // Calcular el factor basado en la frecuencia y el índice
+        sg->params.buffer[i] = (uint8_t)(127 + (sin(factor * TWO_PI) * 127));  // Cálculo de la onda senoidal
     }
 
     return;
@@ -967,6 +1006,33 @@ static void fill_square_wave(SignalGenerator *sg)
         }
     }
 
+    return;
+}
+/*-------------------------------------------------------------------------------------------*/
+static void fill_triangle_wave(SignalGenerator *sg)
+{
+    int cyclelength = sg->params.bufdepth / sg->params.numcycle;
+    for (int cyclecount = 0; cyclecount < sg->params.numcycle; ++cyclecount)
+    { // steps through all the cycles in the buffer
+        for (int cyclestep = 0; cyclestep < cyclelength; ++cyclestep)
+        { // steps through one of the several cycles
+            float factor = (float)cyclestep / cyclelength;
+            if (sg->polarity == -1)
+            {
+                if (factor < sg->duty_cycle)
+                    sg->params.buffer[(cyclecount * sg->params.bufdepth / sg->params.numcycle) + cyclestep] = 255 - ((255 / sg->duty_cycle) * factor);
+                else
+                    sg->params.buffer[(cyclecount * sg->params.bufdepth / sg->params.numcycle) + cyclestep] = 255 - ((255 / sg->duty_cycle) * (1 - factor));
+            }
+            else
+            {
+                if (factor < sg->duty_cycle)
+                    sg->params.buffer[(cyclecount * sg->params.bufdepth / sg->params.numcycle) + cyclestep] = (255 / sg->duty_cycle) * factor;
+                else
+                    sg->params.buffer[(cyclecount * sg->params.bufdepth / sg->params.numcycle) + cyclestep] = (255 / sg->duty_cycle) * (1 - factor);
+            }
+        }
+    }
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
@@ -1006,21 +1072,35 @@ static void init_pins(void)
     gpio_init(MULTIPLICADOR_PIN);
     gpio_set_dir(MULTIPLICADOR_PIN, GPIO_IN);
 
+    gpio_init(BUZZER_PIN);
+    gpio_set_dir(BUZZER_PIN, GPIO_OUT);
+
+    gpio_set_slew_rate(8, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(9, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(10, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(11, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(12, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(13, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(14, GPIO_SLEW_RATE_FAST);
+    gpio_set_slew_rate(15, GPIO_SLEW_RATE_FAST);
+
     // gpio_put(LED_PIN, 1);
 
     // Confguracion de pines del encoder
     // Configura los pines A y B del encoder
     gpio_init(ENCODER_PIN_A);
     gpio_set_dir(ENCODER_PIN_A, GPIO_IN);
-    gpio_pull_up(ENCODER_PIN_A);
+    // gpio_pull_up(ENCODER_PIN_A);
+    // gpio_set_slew_rate(ENCODER_PIN_A, GPIO_SLEW_RATE_FAST);
 
     gpio_init(ENCODER_PIN_B);
     gpio_set_dir(ENCODER_PIN_B, GPIO_IN);
-    gpio_pull_up(ENCODER_PIN_B);
+    // gpio_pull_up(ENCODER_PIN_B);
+    // gpio_set_slew_rate(ENCODER_PIN_B, GPIO_SLEW_RATE_FAST);
 
     // Configura las interrupciones en ambos pines
     gpio_set_irq_enabled_with_callback(ENCODER_PIN_A, GPIO_IRQ_EDGE_FALL, true, &encoder_isrA);
-    // gpio_set_irq_enabled_with_callback(ENCODER_PIN_B, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &encoder_isrB);
+    // gpio_set_irq_enabled_with_callback(ENCODER_PIN_B, GPIO_IRQ_EDGE_FALL, true, &encoder_isrB);
 
     return;
 }
@@ -1034,6 +1114,7 @@ static void prvTimerRtos_Antirrebote(TimerHandle_t xTimer)
 {
     /* Vuelve a habilitar la interrupcion. */
     gpio_set_irq_enabled_with_callback(ENCODER_PIN_A, GPIO_IRQ_EDGE_FALL, true, &encoder_isrA);
+    // gpio_set_irq_enabled_with_callback(ENCODER_PIN_B, GPIO_IRQ_EDGE_FALL, true, &encoder_isrB);
 
     return;
 }
@@ -1047,7 +1128,11 @@ static void encoder_isrA(uint gpio, uint32_t events)
     // Notifica a la tarea de encoder
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    gpio_set_irq_enabled_with_callback(ENCODER_PIN_A, GPIO_IRQ_EDGE_FALL, false, &encoder_isrA);
+    gpio_set_irq_enabled(ENCODER_PIN_A, GPIO_IRQ_EDGE_FALL, false);
+
+    channel_a_state = gpio_get(ENCODER_PIN_A);
+    channel_b_state = gpio_get(ENCODER_PIN_B);
+    // pin = ENCODER_PIN_A;
 
     vTaskNotifyGiveFromISR(handle_Encoder, &xHigherPriorityTaskWoken);
 
@@ -1058,7 +1143,15 @@ static void encoder_isrB(uint gpio, uint32_t events)
 {
     // Notifica a la tarea de encoder
     // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    // gpio_set_irq_enabled(ENCODER_PIN_B, GPIO_IRQ_EDGE_FALL, false);
+
+    // channel_a_state = gpio_get(ENCODER_PIN_A);
+    // channel_b_state = gpio_get(ENCODER_PIN_B);
+    // pin = ENCODER_PIN_B;
+
     // vTaskNotifyGiveFromISR(handle_Encoder, &xHigherPriorityTaskWoken);
+
     // portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /*-------------------------------------------------------------------------------------------*/

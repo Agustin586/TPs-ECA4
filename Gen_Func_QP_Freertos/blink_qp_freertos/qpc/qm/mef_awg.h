@@ -67,6 +67,7 @@ enum AwgSignals {
     CONFIRM_SIG,
     TIMER_1SEG_SIG,
     MULTIPLICADOR_SIG,
+    STOP_SIG,
 };
 
 //${Shared_Awg::AO_Awg} ......................................................
@@ -87,6 +88,22 @@ enum Multiplador_t {
     MULTIPLICADOR_AMP,
     MULTIPLICADOR_OFFSET,
 };
+
+//${Shared_Awg::getCurrentState} .............................................
+uint8_t getCurrentState(void);
+
+//${Shared_Awg::StateConfig_t} ...............................................
+enum StateConfig_t {
+    CONFIG_FUNCION = 0,
+    CONFIG_FREQ,
+    CONFIG_AMP,
+    CONFIG_OFFSET,
+    CONFIG_CONFIRM,
+    SALIDA_EN,
+};
+
+//${Shared_Awg::setEvtStop} ..................................................
+void setEvtStop(void);
 //$enddecl${Shared_Awg} ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #endif
