@@ -90,15 +90,6 @@ typedef enum
     MULT_OFFSET_X_0_01,
 } MultOffset_t;
 
-// Definimos los tipos de señal
-typedef enum
-{
-    SIGNAL_SINE = 0,
-    SIGNAL_SQUARE,
-    SIGNAL_TRIANGLE,
-    SIGNAL_SAWTOOTH,
-} SignalType;
-
 // Definimos los parametros de la señal
 typedef struct
 {
@@ -360,14 +351,17 @@ extern void awg_config(void)
 
     pio_sm_set_enabled(pio, sm, false);
 
-    printf("Check: Configuracion del awg.\n");
+    /* Configuracion display. */
+    display_init();
+
+    // // printf("Check: Configuracion del awg.\n");
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Func(void)
 {
-    printf("\nEstado: tipo de funcion.\n");
+    // // printf("\nEstado: tipo de funcion.\n");
 
     // Deteccion del encoder ...
     // Seleccionamos el tipo de funcion
@@ -385,19 +379,22 @@ extern void awg_Func(void)
     switch (signal_ch1.type)
     {
     case SIGNAL_SINE:
-        printf("Tipo de señal: senoidal.\n");
+        drawWaveform(0, 10, 1000.0, 0);
+        // printf("Tipo de señal: senoidal.\n");
         break;
     case SIGNAL_SQUARE:
-        printf("Tipo de señal: cuadrada.\n");
+        drawWaveform(1, 10, 1000.0, 0);
+        // printf("Tipo de señal: cuadrada.\n");
         break;
     case SIGNAL_TRIANGLE:
-        printf("Tipo de señal: triangular.\n");
+        drawWaveform(2, 10, 1000.0, 0);
+        // printf("Tipo de señal: triangular.\n");
         break;
     case SIGNAL_SAWTOOTH:
-        printf("Tipo de señal: diente de sierra.\n");
+        // printf("Tipo de señal: diente de sierra.\n");
         break;
     default:
-        printf("Tipo de señal: desconocida.\n");
+        // printf("Tipo de señal: desconocida.\n");
         break;
     }
 
@@ -409,7 +406,7 @@ extern void awg_Func(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Freq(void)
 {
-    printf("\nEstado: config freq.\n");
+    // printf("\nEstado: config freq.\n");
 
     float freq_new = signal_ch1.frequency;
 
@@ -460,15 +457,16 @@ extern void awg_Freq(void)
 
     // Cargamos la informacion en la pantalla
     // display_freq();
+    drawWaveform(0, signal_ch1.amplitude, signal_ch1.frequency, 0);
 
-    printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
+    // printf("Frecuencia: %.2f.\n", signal_ch1.frequency);
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Amp(void)
 {
-    printf("\nEstado: config Amp.\n");
+    // printf("\nEstado: config Amp.\n");
 
     float amp_new = signal_ch1.amplitude;
 
@@ -492,7 +490,7 @@ extern void awg_Amp(void)
             amp_new -= 0.01;
     }
 
-    // printf("Amplitud: %.2f.\n", amp_new);
+    // // printf("Amplitud: %.2f.\n", amp_new);
 
     // Limites
     if (amp_new > AMPLITUD_SALIDA_MAX)
@@ -506,14 +504,14 @@ extern void awg_Amp(void)
     // Cargamos la informacion en la pantalla
     // display_amp();
 
-    printf("Amplitud: %.2f.\n", signal_ch1.amplitude);
+    // printf("Amplitud: %.2f.\n", signal_ch1.amplitude);
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Offset(void)
 {
-    printf("Estado: config offset.\n");
+    // printf("Estado: config offset.\n");
 
     float offset_new = signal_ch1.offset;
 
@@ -549,26 +547,26 @@ extern void awg_Offset(void)
     // Cargamos la informacion en la pantalla
     // display_offset();
 
-    printf("Offset: %.2f.\n", offset_new);
+    // printf("Offset: %.2f.\n", offset_new);
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_enableOutput(void)
 {
-    // printf("Estado: confirmacion config.\n");
+    // // printf("Estado: confirmacion config.\n");
 
     // Cargamos la informacion en la pantalla
     // display_salida();
 
-    signal_ch1.state_out = true;
+    signal_ch1.state_out = !signal_ch1.state_out;
 
     return;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_start(void)
 {
-    printf("Estado: salida.\n");
+    // printf("Estado: salida.\n");
 
     select_freq(&signal_ch1); // Configura la frecuencia del SM.
 
@@ -593,7 +591,7 @@ extern void awg_ledOff(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_resetEnc(void)
 {
-    printf("Check: reset encoder.\n");
+    // printf("Check: reset encoder.\n");
 
     /* Configuracion del selector. */
     selector.cont = 0;
@@ -615,6 +613,11 @@ extern void awg_stop(void)
 {
     signal_ch1.state_out = false;
 
+    // Reseteo el multiplicador del selector
+    selector.multAmpl = MULT_AMP_X_1;
+    selector.multFreq = MULT_FREQ_X_1;
+    selector.multOffset = MULT_OFFSET_X_1;
+
     pio_sm_set_enabled(pio, sm, false);
 
     return;
@@ -633,8 +636,33 @@ extern void awg_multiplicador(uint8_t tipo)
         selector.multFreq += 1;
         if (selector.multFreq > MULT_FREQ_X_1000000)
             selector.multFreq = MULT_FREQ_X_1;
-
-        printf("Multiplicador Freq: %d\n", selector.multFreq);
+        switch (selector.multFreq)
+        {
+        case MULT_FREQ_X_1:
+            display_setMultiplicadorText("x1 Hz");
+            break;
+        case MULT_FREQ_X_10:
+            display_setMultiplicadorText("x10 Hz");
+            break;
+        case MULT_FREQ_X_100:
+            display_setMultiplicadorText("x100 Hz");
+            break;
+        case MULT_FREQ_X_1000:
+            display_setMultiplicadorText("x1 KHz");
+            break;
+        case MULT_FREQ_X_10000:
+            display_setMultiplicadorText("x10 KHz");
+            break;
+        case MULT_FREQ_X_100000:
+            display_setMultiplicadorText("x100 KHz");
+            break;
+        case MULT_FREQ_X_1000000:
+            display_setMultiplicadorText("x1 MHz");
+            break;
+        default:
+            break;
+        }
+        // printf("Multiplicador Freq: %d\n", selector.multFreq);
 
         break;
     case MULTIPLICADOR_AMP:
@@ -642,7 +670,22 @@ extern void awg_multiplicador(uint8_t tipo)
         if (selector.multAmpl > MULT_AMP_X_0_01)
             selector.multAmpl = MULT_AMP_X_1;
 
-        printf("Multiplicador Amp: %d\n", selector.multAmpl);
+        switch (selector.multAmpl)
+        {
+        case MULT_AMP_X_1:
+            display_setMultiplicadorText("x1 Vp");
+            break;
+        case MULT_AMP_X_0_1:
+            display_setMultiplicadorText("x0.1 Vp");
+            break;
+        case MULT_AMP_X_0_01:
+            display_setMultiplicadorText("x0.01 Vp");
+            break;
+        default:
+            break;
+        }
+
+        // printf("Multiplicador Amp: %d\n", selector.multAmpl);
 
         break;
     case MULTIPLICADOR_OFFSET:
@@ -650,7 +693,21 @@ extern void awg_multiplicador(uint8_t tipo)
         if (selector.multOffset > MULT_AMP_X_0_01)
             selector.multOffset = MULT_AMP_X_1;
 
-        printf("Multiplicador Offset: %d\n", selector.multFreq);
+        switch (selector.multOffset)
+        {
+        case MULT_AMP_X_1:
+            display_setMultiplicadorText("x1 Vp");
+            break;
+        case MULT_AMP_X_0_1:
+            display_setMultiplicadorText("x0.1 Vp");
+            break;
+        case MULT_AMP_X_0_01:
+            display_setMultiplicadorText("x0.01 Vp");
+            break;
+        default:
+            break;
+        }
+        // printf("Multiplicador Offset: %d\n", selector.multFreq);
 
         break;
     default:
@@ -673,6 +730,11 @@ extern float get_amplitude(void)
 extern float get_offset(void)
 {
     return signal_ch1.offset;
+}
+/*-------------------------------------------------------------------------------------------*/
+extern int get_funcion(void)
+{
+    return signal_ch1.type;
 }
 
 // PRIVATE FUNCTIONS FREERTOS =================================================================
@@ -703,7 +765,7 @@ static void prvTaskRtos_encoder(void *pvParameters)
 
         if (ulNotificationValue == 1)
         {
-            // printf("A: %d, B: %d\n", channel_a_state, channel_b_state);
+            // // printf("A: %d, B: %d\n", channel_a_state, channel_b_state);
 
             // Determina la dirección del giro según los estados de A y B
             // Flanco descendente de A
@@ -772,11 +834,11 @@ static void prvTaskRtos_pulsadores(void *pvParameters)
         }
         else if (!getState_Pulsador(MULTIPLICADOR_PIN))
         {
-            if (getCurrentState() != CONFIG_CONFIRM &&  getCurrentState() != SALIDA_EN)
+            if (getCurrentState() != CONFIG_CONFIRM && getCurrentState() != SALIDA_EN)
                 setEvt_Multiplicador();
             else if (getCurrentState() == CONFIG_CONFIRM)
                 setEvt_Confirm();
-            else if(getCurrentState() == SALIDA_EN)
+            else if (getCurrentState() == SALIDA_EN)
                 setEvtStop();
 
             gpio_put(BUZZER_PIN, 1);
@@ -814,7 +876,7 @@ static void init_task(void)
 
     configASSERT(status == NULL);
 
-    printf("Check: Tareas creadas correctamente.\n");
+    // printf("Check: Tareas creadas correctamente.\n");
 
     return;
 }
@@ -830,7 +892,7 @@ static void init_timers(void)
 
     configASSERT(timer_Antirrebote == NULL);
 
-    printf("Check: Timers creados correctamente.\n");
+    // printf("Check: Timers creados correctamente.\n");
 
     return;
 }
@@ -955,7 +1017,7 @@ static void generate_signal(SignalGenerator *sg)
     switch (sg->type)
     {
     case SIGNAL_SINE:
-        // printf("se configuro la senoidal");
+        // // printf("se configuro la senoidal");
         // fill_square_wave(sg);
         fill_sine_wave(sg);
         break;

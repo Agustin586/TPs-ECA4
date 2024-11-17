@@ -37,6 +37,7 @@
 #include "mef_awg.h"
 #include "awg.h"
 #include "bsp.h"
+#include "display.h"
 
 
 //$declare${AOs_Awg::Awg} vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -48,6 +49,9 @@ typedef struct Awg {
 
 // public:
     QTimeEvt time1segEvt;
+
+// private:
+    QTimeEvt time3segEvt;
 } Awg;
 
 extern Awg Awg_inst;
@@ -109,6 +113,7 @@ void Awg_ctor(void) {
     Awg * const me = &Awg_inst;
     QActive_ctor(&me->super, Q_STATE_CAST(&Awg_initial));
     //QTimeEvt_ctorX(&me->time1segEvt, &me->super, TIMER_1SEG_SIG, 0U);
+    QTimeEvt_ctorX(&me->time3segEvt, &me->super, TIMER_3SEG_SIG, 0U);
 }
 
 //${Shared_Awg::setEvt_Avanc} ................................................
@@ -170,6 +175,8 @@ QEvt const  Awg_stop_evt = QEVT_INITIALIZER(STOP_SIG);
 static QState Awg_initial(Awg * const me, void const * const par) {
     //${AOs_Awg::Awg::SM::initial}
     awg_config();
+    QTimeEvt_armX(&me->time3segEvt,
+    7000, 0);
     return Q_TRAN(&Awg_Reset);
 }
 
@@ -177,15 +184,21 @@ static QState Awg_initial(Awg * const me, void const * const par) {
 static QState Awg_Reset(Awg * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
-        //${AOs_Awg::Awg::SM::Reset}
-        case Q_ENTRY_SIG: {
-            awg_reset();
-            status_ = Q_HANDLED();
-            break;
-        }
         //${AOs_Awg::Awg::SM::Reset::INIT}
         case INIT_SIG: {
+            QTimeEvt_disarm(&me->time3segEvt);
+            display_func();
+            display_freq();
+            display_amp();
+            display_offset();
+            display_setMultiplicadorText("x1 Hz");
             status_ = Q_TRAN(&Awg_Configuracion);
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Reset::TIMER_3SEG}
+        case TIMER_3SEG_SIG: {
+            awg_reset();
+            status_ = Q_HANDLED();
             break;
         }
         default: {
@@ -221,7 +234,15 @@ static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             Awg_StateConfig = CONFIG_FUNCION;
             awg_resetEnc();
-            printf("Estado: tipo de funcion.\n");
+            display_pulsarBoton(BOTON_FUNCTION, true);
+            drawWaveform(0, 10, 1000.0, 0);
+            //printf("Estado: tipo de funcion.\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func}
+        case Q_EXIT_SIG: {
+            display_pulsarBoton(BOTON_FUNCTION, false);
             status_ = Q_HANDLED();
             break;
         }
@@ -233,6 +254,7 @@ static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}
         case ENCODER_SIG: {
             awg_Func();
+            display_func();
             status_ = Q_HANDLED();
             break;
         }
@@ -252,7 +274,15 @@ static QState Awg_Freq(Awg * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             Awg_StateConfig = CONFIG_FREQ;
             awg_resetEnc();
-            printf("Estado: config freq.\n");
+            display_pulsarBoton(BOTON_FREQ, true);
+            //printf("Estado: config freq.\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Freq}
+        case Q_EXIT_SIG: {
+            display_pulsarBoton(BOTON_FREQ, false);
+            display_setMultiplicadorText("x1 Vp");
             status_ = Q_HANDLED();
             break;
         }
@@ -264,6 +294,7 @@ static QState Awg_Freq(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}
         case ENCODER_SIG: {
             awg_Freq();
+            display_freq();
             status_ = Q_HANDLED();
             break;
         }
@@ -294,7 +325,15 @@ static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             Awg_StateConfig = CONFIG_AMP;
             awg_resetEnc();
-            printf("Estado: config Amp.\n");
+            display_pulsarBoton(BOTON_AMP, true);
+            //printf("Estado: config Amp.\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Amplitud}
+        case Q_EXIT_SIG: {
+            display_pulsarBoton(BOTON_AMP, false);
+            display_setMultiplicadorText("x1 Vp");
             status_ = Q_HANDLED();
             break;
         }
@@ -306,6 +345,7 @@ static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}
         case ENCODER_SIG: {
             awg_Amp();
+            display_amp();
             status_ = Q_HANDLED();
             break;
         }
@@ -336,13 +376,21 @@ static QState Awg_Offset(Awg * const me, QEvt const * const e) {
         case Q_ENTRY_SIG: {
             Awg_StateConfig = CONFIG_OFFSET;
             awg_resetEnc();
-            printf("Estado: config offset.\n");
+            display_pulsarBoton(BOTON_OFFSET, true);
+            //printf("Estado: config offset.\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Offset}
+        case Q_EXIT_SIG: {
+            display_pulsarBoton(BOTON_OFFSET, false);
             status_ = Q_HANDLED();
             break;
         }
         //${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}
         case ENCODER_SIG: {
             awg_Offset();
+            display_offset();
             status_ = Q_HANDLED();
             break;
         }
@@ -377,13 +425,20 @@ static QState Awg_Confirm_config(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Configuracion::Confirm_config}
         case Q_ENTRY_SIG: {
             Awg_StateConfig = CONFIG_CONFIRM;
-            printf("Estado: confirmacion config.\n");
+            //printf("Estado: confirmacion config.\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        //${AOs_Awg::Awg::SM::Configuracion::Confirm_config}
+        case Q_EXIT_SIG: {
+            display_setMultiplicadorText("x1 Hz");
             status_ = Q_HANDLED();
             break;
         }
         //${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}
         case CONFIRM_SIG: {
             awg_enableOutput();
+            display_pulsarBoton(BOTON_SALIDA, true);
             status_ = Q_HANDLED();
             break;
         }
@@ -442,6 +497,7 @@ static QState Awg_Salida(Awg * const me, QEvt const * const e) {
         //${AOs_Awg::Awg::SM::Salida::STOP}
         case STOP_SIG: {
             awg_stop();
+            display_pulsarBoton(BOTON_SALIDA, true);
             status_ = Q_TRAN(&Awg_Tipo_Func);
             break;
         }

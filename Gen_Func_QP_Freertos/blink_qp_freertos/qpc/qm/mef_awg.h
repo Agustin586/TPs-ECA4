@@ -68,6 +68,7 @@ enum AwgSignals {
     TIMER_1SEG_SIG,
     MULTIPLICADOR_SIG,
     STOP_SIG,
+    TIMER_3SEG_SIG,
 };
 
 //${Shared_Awg::AO_Awg} ......................................................

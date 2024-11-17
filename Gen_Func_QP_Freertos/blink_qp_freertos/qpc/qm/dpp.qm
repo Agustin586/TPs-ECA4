@@ -118,27 +118,41 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
    <attribute name="stop_evt" type="QEvt const " visibility="0x00" properties="0x01">
     <code>= QEVT_INITIALIZER(STOP_SIG);</code>
    </attribute>
+   <!--${AOs_Awg::Awg::time3segEvt}-->
+   <attribute name="time3segEvt" type="QTimeEvt" visibility="0x02" properties="0x00"/>
    <!--${AOs_Awg::Awg::SM}-->
    <statechart properties="0x00">
     <!--${AOs_Awg::Awg::SM::initial}-->
     <initial target="../1">
-     <action>awg_config();</action>
+     <action>awg_config();
+QTimeEvt_armX(&amp;me-&gt;time3segEvt,
+7000, 0);</action>
      <initial_glyph conn="19,2,5,0,22,4">
       <action box="0,-2,13,4"/>
      </initial_glyph>
     </initial>
     <!--${AOs_Awg::Awg::SM::Reset}-->
     <state name="Reset">
-     <entry>awg_reset();</entry>
      <!--${AOs_Awg::Awg::SM::Reset::INIT}-->
      <tran trig="INIT" target="../../2">
-      <tran_glyph conn="41,16,2,0,6">
+      <action>QTimeEvt_disarm(&amp;me-&gt;time3segEvt);
+display_func();
+display_freq();
+display_amp();
+display_offset();
+display_setMultiplicadorText(&quot;x1 Hz&quot;);</action>
+      <tran_glyph conn="41,15,2,0,7">
        <action box="1,1,10,2"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="31,6,20,10">
-      <entry box="1,2,12,4"/>
-     </state_glyph>
+     <!--${AOs_Awg::Awg::SM::Reset::TIMER_3SEG}-->
+     <tran trig="TIMER_3SEG">
+      <action>awg_reset();</action>
+      <tran_glyph conn="31,11,3,-1,17">
+       <action box="0,-2,15,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="31,6,20,9"/>
     </state>
     <!--${AOs_Awg::Awg::SM::Configuracion}-->
     <state name="Configuracion">
@@ -153,7 +167,10 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
       <documentation>Se elije el tipo de senial</documentation>
       <entry>Awg_StateConfig = CONFIG_FUNCION;
 awg_resetEnc();
-printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
+display_pulsarBoton(BOTON_FUNCTION, true);
+drawWaveform(0, 10, 1000.0, 0);
+//printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
+      <exit>display_pulsarBoton(BOTON_FUNCTION, false);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}-->
       <tran trig="AVANC" target="../../2">
        <tran_glyph conn="27,32,1,3,8">
@@ -162,13 +179,15 @@ printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::ENCODER}-->
       <tran trig="ENCODER">
-       <action>awg_Func();</action>
+       <action>awg_Func();
+display_func();</action>
        <tran_glyph conn="13,38,3,-1,11">
         <action box="0,-4,12,4"/>
        </tran_glyph>
       </tran>
       <state_glyph node="13,27,14,13">
        <entry box="1,2,13,4"/>
+       <exit box="1,6,6,2"/>
       </state_glyph>
      </state>
      <!--${AOs_Awg::Awg::SM::Configuracion::Freq}-->
@@ -176,7 +195,10 @@ printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
       <documentation>Se configura la frecuencia</documentation>
       <entry>Awg_StateConfig = CONFIG_FREQ;
 awg_resetEnc();
-printf(&quot;Estado: config freq.\n&quot;);</entry>
+display_pulsarBoton(BOTON_FREQ, true);
+//printf(&quot;Estado: config freq.\n&quot;);</entry>
+      <exit>display_pulsarBoton(BOTON_FREQ, false);
+display_setMultiplicadorText(&quot;x1 Vp&quot;);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::AVANC}-->
       <tran trig="AVANC" target="../../3">
        <tran_glyph conn="51,32,1,3,8">
@@ -185,7 +207,8 @@ printf(&quot;Estado: config freq.\n&quot;);</entry>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Freq::ENCODER}-->
       <tran trig="ENCODER">
-       <action>awg_Freq();</action>
+       <action>awg_Freq();
+display_freq();</action>
        <tran_glyph conn="35,38,3,-1,11">
         <action box="0,-4,11,4"/>
        </tran_glyph>
@@ -205,6 +228,7 @@ printf(&quot;Estado: config freq.\n&quot;);</entry>
       </tran>
       <state_glyph node="35,27,16,15">
        <entry box="1,2,13,4"/>
+       <exit box="1,6,6,2"/>
       </state_glyph>
      </state>
      <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud}-->
@@ -212,7 +236,10 @@ printf(&quot;Estado: config freq.\n&quot;);</entry>
       <documentation>Se configura la amplitud de la funcion</documentation>
       <entry>Awg_StateConfig = CONFIG_AMP;
 awg_resetEnc();
-printf(&quot;Estado: config Amp.\n&quot;);</entry>
+display_pulsarBoton(BOTON_AMP, true);
+//printf(&quot;Estado: config Amp.\n&quot;);</entry>
+      <exit>display_pulsarBoton(BOTON_AMP, false);
+display_setMultiplicadorText(&quot;x1 Vp&quot;);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::AVANC}-->
       <tran trig="AVANC" target="../../4">
        <tran_glyph conn="76,32,1,1,5,16,-5">
@@ -221,7 +248,8 @@ printf(&quot;Estado: config Amp.\n&quot;);</entry>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}-->
       <tran trig="ENCODER">
-       <action>awg_Amp();</action>
+       <action>awg_Amp();
+display_amp();</action>
        <tran_glyph conn="59,38,3,-1,11">
         <action box="0,-4,11,4"/>
        </tran_glyph>
@@ -241,6 +269,7 @@ printf(&quot;Estado: config Amp.\n&quot;);</entry>
       </tran>
       <state_glyph node="59,27,17,15">
        <entry box="1,2,13,4"/>
+       <exit box="1,6,6,2"/>
       </state_glyph>
      </state>
      <!--${AOs_Awg::Awg::SM::Configuracion::Offset}-->
@@ -248,10 +277,13 @@ printf(&quot;Estado: config Amp.\n&quot;);</entry>
       <documentation>Se configura el offset de la funcion</documentation>
       <entry>Awg_StateConfig = CONFIG_OFFSET;
 awg_resetEnc();
-printf(&quot;Estado: config offset.\n&quot;);</entry>
+display_pulsarBoton(BOTON_OFFSET, true);
+//printf(&quot;Estado: config offset.\n&quot;);</entry>
+      <exit>display_pulsarBoton(BOTON_OFFSET, false);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Offset::ENCODER}-->
       <tran trig="ENCODER">
-       <action>awg_Offset();</action>
+       <action>awg_Offset();
+display_offset();</action>
        <tran_glyph conn="59,54,3,-1,12">
         <action box="0,-4,12,4"/>
        </tran_glyph>
@@ -277,15 +309,18 @@ printf(&quot;Estado: config offset.\n&quot;);</entry>
       </tran>
       <state_glyph node="59,43,17,16">
        <entry box="1,2,13,4"/>
+       <exit box="1,6,6,2"/>
       </state_glyph>
      </state>
      <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config}-->
      <state name="Confirm_config">
       <entry>Awg_StateConfig = CONFIG_CONFIRM;
-printf(&quot;Estado: confirmacion config.\n&quot;);</entry>
+//printf(&quot;Estado: confirmacion config.\n&quot;);</entry>
+      <exit>display_setMultiplicadorText(&quot;x1 Hz&quot;);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Confirm_config::CONFIRM}-->
       <tran trig="CONFIRM">
-       <action>awg_enableOutput();</action>
+       <action>awg_enableOutput();
+display_pulsarBoton(BOTON_SALIDA, true);</action>
        <tran_glyph conn="32,55,3,-1,14">
         <action box="0,-4,17,4"/>
        </tran_glyph>
@@ -318,6 +353,7 @@ printf(&quot;Estado: confirmacion config.\n&quot;);</entry>
       </tran>
       <state_glyph node="32,45,19,14">
        <entry box="1,2,6,2"/>
+       <exit box="1,4,6,2"/>
       </state_glyph>
      </state>
      <state_glyph node="11,22,73,38"/>
@@ -337,7 +373,8 @@ awg_start();
      </tran>
      <!--${AOs_Awg::Awg::SM::Salida::STOP}-->
      <tran trig="STOP" target="../../2/1">
-      <action>awg_stop();</action>
+      <action>awg_stop();
+display_pulsarBoton(BOTON_SALIDA, true);</action>
       <tran_glyph conn="42,83,2,3,3,-34,-54,5">
        <action box="-25,-1,12,4"/>
       </tran_glyph>
@@ -379,7 +416,8 @@ QACTIVE_POST(AO_Awg, &amp;Awg_encoder_evt, 0);</code>
    <documentation>Constructor del objeto activo awg</documentation>
    <code>Awg * const me = &amp;Awg_inst;
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
-//QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);</code>
+//QTimeEvt_ctorX(&amp;me-&gt;time1segEvt, &amp;me-&gt;super, TIMER_1SEG_SIG, 0U);
+QTimeEvt_ctorX(&amp;me-&gt;time3segEvt, &amp;me-&gt;super, TIMER_3SEG_SIG, 0U);</code>
   </operation>
   <!--${Shared_Awg::setEvt_Avanc}-->
   <operation name="setEvt_Avanc" type="void" visibility="0x00" properties="0x00">
@@ -398,6 +436,7 @@ QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Awg_initial));
     TIMER_1SEG_SIG,
     MULTIPLICADOR_SIG,
     STOP_SIG,
+    TIMER_3SEG_SIG,
 };</code>
   </attribute>
   <!--${Shared_Awg::AO_Awg}-->
@@ -503,6 +542,7 @@ $declare ${Shared_Awg}
    <text>#include &quot;mef_awg.h&quot;
 #include &quot;awg.h&quot;
 #include &quot;bsp.h&quot;
+#include &quot;display.h&quot;
 
 
 $declare${AOs_Awg::Awg}

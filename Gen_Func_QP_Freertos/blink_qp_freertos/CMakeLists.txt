@@ -78,6 +78,7 @@ target_link_libraries(pico-freertos PRIVATE
     hardware_gpio
     hardware_irq
     hardware_pwm
+    hardware_uart
     # hardware_interp
     # hardware_timer
     # hardware_watchdog
@@ -106,5 +107,5 @@ target_sources(pico-freertos PRIVATE ${QPC_SOURCES})
 pico_generate_pio_header(pico-freertos ${CMAKE_CURRENT_LIST_DIR}/src/prog_pio.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(pico-freertos 0)
+pico_enable_stdio_uart(pico-freertos 1)
 pico_enable_stdio_usb(pico-freertos 1)
