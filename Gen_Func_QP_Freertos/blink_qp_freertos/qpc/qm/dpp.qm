@@ -158,6 +158,7 @@ display_setMultiplicadorText(&quot;x1 Hz&quot;);</action>
     <state name="Configuracion">
      <!--${AOs_Awg::Awg::SM::Configuracion::initial}-->
      <initial target="../1">
+      <action>drawWaveform(0, 10, 1000.0, 0);</action>
       <initial_glyph conn="14,26,5,0,6,1">
        <action box="0,-2,10,2"/>
       </initial_glyph>
@@ -168,7 +169,6 @@ display_setMultiplicadorText(&quot;x1 Hz&quot;);</action>
       <entry>Awg_StateConfig = CONFIG_FUNCION;
 awg_resetEnc();
 display_pulsarBoton(BOTON_FUNCTION, true);
-drawWaveform(0, 10, 1000.0, 0);
 //printf(&quot;Estado: tipo de funcion.\n&quot;);</entry>
       <exit>display_pulsarBoton(BOTON_FUNCTION, false);</exit>
       <!--${AOs_Awg::Awg::SM::Configuracion::Tipo_Func::AVANC}-->

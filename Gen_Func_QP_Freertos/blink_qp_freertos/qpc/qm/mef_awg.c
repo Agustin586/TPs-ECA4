@@ -215,6 +215,7 @@ static QState Awg_Configuracion(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::initial}
         case Q_INIT_SIG: {
+            drawWaveform(0, 10, 1000.0, 0);
             status_ = Q_TRAN(&Awg_Tipo_Func);
             break;
         }
@@ -235,7 +236,6 @@ static QState Awg_Tipo_Func(Awg * const me, QEvt const * const e) {
             Awg_StateConfig = CONFIG_FUNCION;
             awg_resetEnc();
             display_pulsarBoton(BOTON_FUNCTION, true);
-            drawWaveform(0, 10, 1000.0, 0);
             //printf("Estado: tipo de funcion.\n");
             status_ = Q_HANDLED();
             break;
