@@ -1,0 +1,80 @@
+Removed Member From Class: ClassName=Alimentacion Member=C21
+Removed Member From Class: ClassName=Alimentacion Member=C22
+Removed Member From Class: ClassName=Salida Member=C23
+Removed Member From Class: ClassName=Salida Member=C26
+Removed Member From Class: ClassName=Alimentacion Member=D7
+Removed Member From Class: ClassName=Alimentacion Member=D8
+Removed Member From Class: ClassName=Alimentacion Member=J2
+Removed Member From Class: ClassName=Control Member=P3
+Removed Member From Class: ClassName=Salida Member=Q6
+Removed Member From Class: ClassName=Control Member=R26
+Removed Member From Class: ClassName=Control Member=R27
+Removed Member From Class: ClassName=Control Member=R29
+Removed Member From Class: ClassName=Control Member=R32
+Removed Member From Class: ClassName=Control Member=R33
+Removed Member From Class: ClassName=Salida Member=R34
+Removed Member From Class: ClassName=Control Member=R35
+Removed Member From Class: ClassName=Salida Member=R35
+Removed Member From Class: ClassName=Salida Member=R36
+Removed Member From Class: ClassName=Salida Member=R39
+Removed Member From Class: ClassName=Alimentacion Member=U6
+Removed Member From Class: ClassName=Control Member=W3
+Change Component Comment : Designator=U4 Old Comment=LM7915CT/NOPB New Comment=LM7915CT
+Change Managed Component Library Link : Designator=U4 Old VaultGUID=B7D15EC3-160A-466F-A46C-7801FE6295A7 New VaultGUID=B7D15EC3-160A-466F-A46C-7801FE6295A7 Old ItemGUID=553D3617-E283-47E6-9AB5-DDECB6027AA3 New ItemGUID=6275DAA4-5C17-4F5D-B58D-D9FC08FB31F0 Old RevisionGUID=5A277117-B254-4BAC-9B13-4E6576EA707F New RevisionGUID=2C6076A1-23CE-47AD-94D7-D09C17E3DD68
+Change component parameters: Designator = "U4" ("U4"); Footprint = "NDE0003A"; UniqueID = "\BLUDRHYI" ("\BLUDRHYI")
+Change component parameters (AddParameter): Name = "Code_IPC"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Code_JEDEC"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Code_JEITA"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "ComponentLink1Description"; Value = "Datasheet URL"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "ComponentLink1URL"; Value = "http://www.ti.com/general/docs/lit/getliterature.tsp?genericPartNumber=LM7915&fileType=pdf"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "CompType"; Value = "LDO IC"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "High-Reliability"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Manufacturer"; Value = "Texas Instruments"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PackageDescription"; Value = "TO-220, Molded, 3 Lead, Straight"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PackageReference"; Value = "NDE0003A"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PackageTopMarking"; Value = "NSUZXYTTE#*LM7915CT"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PartNumber"; Value = ""; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PinCount"; Value = "3"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "PowerWise"; Value = "N"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "RoHS"; Value = "N"; VariantName = "[No Variations]"
+Added Member To Class: ClassName=Alimentacion Member=Component C1 0.33uF
+Added Member To Class: ClassName=Alimentacion Member=Component C2 0.33uF
+Added Member To Class: ClassName=Control Member=Component C12 2.2uF/Tantalio
+Added Member To Class: ClassName=Control Member=Component C13 10nF/Ceramico
+Added Member To Class: ClassName=Control Member=Component C16 10nF/Ceramico
+Added Member To Class: ClassName=Control Member=Component C19 2.2uF/Tantalio
+Added Member To Class: ClassName=Salida Member=Component C21 Desacople
+Added Member To Class: ClassName=Salida Member=Component C22 100nF
+Added Member To Class: ClassName=Perifericos Member=Component C24 100nF
+Added Member To Class: ClassName=Alimentacion Member=Component D1 1N4007 SMD
+Added Member To Class: ClassName=Alimentacion Member=Component D2 1N4007 SMD
+Added Member To Class: ClassName=Alimentacion Member=Component J1 691101710003
+Added Member To Class: ClassName=Control Member=Component P1 J_Etapa_Realm
+Added Member To Class: ClassName=Perifericos Member=Component P2 61300411121
+Added Member To Class: ClassName=Salida Member=Component Q1 2N2219A
+Added Member To Class: ClassName=Control Member=Component R1 Res1
+Added Member To Class: ClassName=Control Member=Component R2 Res1
+Added Member To Class: ClassName=Control Member=Component R3 Res1
+Added Member To Class: ClassName=Control Member=Component R4 Res1
+Added Member To Class: ClassName=Control Member=Component R5 Res1
+Added Member To Class: ClassName=Control Member=Component R6 Res1
+Added Member To Class: ClassName=Control Member=Component R7 Res1
+Added Member To Class: ClassName=Control Member=Component R8 Res1
+Added Member To Class: ClassName=Control Member=Component R10 Res1
+Added Member To Class: ClassName=Control Member=Component R12 Res1
+Added Member To Class: ClassName=Control Member=Component R14 MSB
+Added Member To Class: ClassName=Control Member=Component R16 Res1
+Added Member To Class: ClassName=Control Member=Component R17 2.2k
+Added Member To Class: ClassName=Control Member=Component R18 10k
+Added Member To Class: ClassName=Control Member=Component R19 10k
+Added Member To Class: ClassName=Control Member=Component R20 1k
+Added Member To Class: ClassName=Control Member=Component R22 10k
+Added Member To Class: ClassName=Control Member=Component R23 10k
+Added Member To Class: ClassName=Salida Member=Component R26 33k
+Added Member To Class: ClassName=Salida Member=Component R28 0.33
+Added Member To Class: ClassName=Salida Member=Component R29 10k
+Added Member To Class: ClassName=Salida Member=Component R30 Res1
+Added Member To Class: ClassName=Salida Member=Component R31 0.33
+Added Member To Class: ClassName=Alimentacion Member=Component U3 AMS1117-3.3
+Added Member To Class: ClassName=Control Member=Component U5 X9C103SIZT1
+Added Member To Class: ClassName=Control Member=Component W1 J_Etapa1
