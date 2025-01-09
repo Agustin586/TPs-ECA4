@@ -1,0 +1,6 @@
+Change Component Footprint: Designator=Q? Old Footprint=FP-135AR-MFG New Footprint=FP-135AR-MFG
+Change Component Footprint: Designator=Q? Old Footprint=FP-135AR-MFG New Footprint=FP-135AR-MFG
+Change Component Designator: OldDesignator=Q? NewDesignator=Q1
+Change Component Designator: OldDesignator=Q? NewDesignator=Q5
+Change Net Name : Old Net Name=NetQ4_3 New Net Name=NetQ1_2
+Added Member To Class: ClassName=Salida Member=Component Q5 2N2907

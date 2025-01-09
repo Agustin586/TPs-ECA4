@@ -1,0 +1,9 @@
+Removed Pin From Net: NetName=RL Pin=U4-5
+Added Component: Designator=R50(RESC2013X50X30LL20T20)
+Add component (AddParameter): Name = "Manufacturer"; Value = "Vishay Dale"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Part Number"; Value = "CRCW08050000Z0EA"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=RL Pin=R50-1
+Added Pin To Net: NetName=NetR50_2 Pin=R50-2
+Added Pin To Net: NetName=NetR50_2 Pin=U4-5
+Added Net: Name=NetR50_2
+Added Member To Class: ClassName=Control Member=Component R50 10k
