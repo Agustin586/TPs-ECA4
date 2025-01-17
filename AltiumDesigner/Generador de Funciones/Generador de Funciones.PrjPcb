@@ -227,6 +227,10 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=
 
+[GeneratedDocument1]
+DocumentPath=Project Outputs for Generador de Funciones\Design Rule Check - PCB_Awg.html
+DItemRevisionGUID=
+
 [Configuration1]
 Name=Sources
 ParameterCount=0
@@ -428,7 +432,29 @@ OutputName1=Composite Drawing
 OutputDocumentPath1=
 OutputVariantName1=
 OutputDefault1=0
-PageOptions1=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=1|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=1|PaperKind=A4|PaperIndex=9
+PageOptions1=Record=PageOptions|CenterHorizontal=True|CenterVertical=True|PrintScale=1.00|XCorrection=1.00|YCorrection=1.00|PrintKind=2|BorderSize=5000000|LeftOffset=0|BottomOffset=0|Orientation=2|PaperLength=1000|PaperWidth=1000|Scale=100|PaperSource=7|PrintQuality=-3|MediaType=1|DitherType=10|PrintScaleMode=0|PaperKind=A4|PaperIndex=9
+Configuration1_Name1=OutputConfigurationParameter1
+Configuration1_Item1=DesignatorDisplayMode=Physical|PrintArea=DesignExtent|PrintAreaLowerLeftCornerX=0|PrintAreaLowerLeftCornerY=0|PrintAreaUpperRightCornerX=0|PrintAreaUpperRightCornerY=0|Record=PcbPrintView|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name2=OutputConfigurationParameter2
+Configuration1_Item2=IncludeBoardCutouts=False|IncludeBottomLayerComponents=True|IncludeMultiLayerComponents=True|IncludeTopLayerComponents=True|IncludeViewports=True|Index=0|Mirror=False|Name=Multilayer Composite Print|PadNumberFontSize=14|Record=PcbPrintOut|ShowHoles=False|ShowPadNets=False|ShowPadNumbers=False|SubstituteFonts=False|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name3=OutputConfigurationParameter3
+Configuration1_Item3=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=TopLayer|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name4=OutputConfigurationParameter4
+Configuration1_Item4=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=MultiLayer|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name5=OutputConfigurationParameter5
+Configuration1_Item5=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=KeepOutLayer|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name6=OutputConfigurationParameter6
+Configuration1_Item6=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical1|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name7=OutputConfigurationParameter7
+Configuration1_Item7=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical3|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name8=OutputConfigurationParameter8
+Configuration1_Item8=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical5|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name9=OutputConfigurationParameter9
+Configuration1_Item9=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical11|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name10=OutputConfigurationParameter10
+Configuration1_Item10=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical15|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+Configuration1_Name11=OutputConfigurationParameter11
+Configuration1_Item11=CArc=Full|CFill=Full|Comment=Full|Coordinate=Full|CPad=Full|CRegion=Full|CText=Full|CTrack=Full|CVia=Full|Designator=Full|Dimension=Full|DLayer1=TopLayer|DLayer2=BottomLayer|DrillType=Regular|FArc=Full|FFill=Full|FPad=Full|FRegion=Full|FText=Full|FTrack=Full|FVia=Full|Layer=Mechanical16|Polygon=Full|PrintOutIndex=0|Record=PcbPrintLayer|DocumentPath=C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
 OutputType2=PCB 3D Print
 OutputName2=PCB 3D Print
 OutputDocumentPath2=
@@ -1965,6 +1991,61 @@ SelectedOnly=0
 UpdateVariants=1
 UpdateToLatestRevision=1
 PartTypes=0
+
+[NetInfos]
+Net1=NetName=+15|NetColor=clYellow
+Net2=NetName=-15|NetColor=clYellow
+Net3=NetName=FB|NetColor=clYellow
+Net4=NetName=GND|NetColor=$000083FD
+Net5=NetName=GPIO10|NetColor=$00FF6E6E
+Net6=NetName=GPIO11|NetColor=$00FF6E6E
+Net7=NetName=GPIO12|NetColor=$00FF6E6E
+Net8=NetName=GPIO13|NetColor=$00FF6E6E
+Net9=NetName=GPIO14|NetColor=$00FF6E6E
+Net10=NetName=GPIO15|NetColor=$00FF6E6E
+Net11=NetName=GPIO8|NetColor=$00FF6E6E
+Net12=NetName=GPIO9|NetColor=$00FF6E6E
+Net13=NetName=NetC10_2|NetColor=$00FFFF6E
+Net14=NetName=NetC11_1|NetColor=$0000BE00
+Net15=NetName=NetC11_2|NetColor=$0000BE00
+Net16=NetName=NetC12_2|NetColor=$006E6EFF
+Net17=NetName=NetC14_1|NetColor=$006E6EFF
+Net18=NetName=NetC14_2|NetColor=$006E6EFF
+Net19=NetName=NetC18_1|NetColor=clYellow
+Net20=NetName=NetC18_2|NetColor=clYellow
+Net21=NetName=NetD1_2|NetColor=clYellow
+Net22=NetName=NetD2_1|NetColor=clYellow
+Net23=NetName=NetJ3_1|NetColor=clYellow
+Net24=NetName=NetP1_1|NetColor=$0000BE00
+Net25=NetName=NetP1_2|NetColor=$0000BE00
+Net26=NetName=NetP1_3|NetColor=clYellow
+Net27=NetName=NetR1_1|NetColor=$00FF6E6E
+Net28=NetName=NetR10_2|NetColor=$00FFFF6E
+Net29=NetName=NetR11_1|NetColor=$00FFFF6E
+Net30=NetName=NetR11_2|NetColor=$0000BE00
+Net31=NetName=NetR2_2|NetColor=$0000BE00
+Net32=NetName=NetR27_1|NetColor=$0000BE00
+Net33=NetName=NetR34_1|NetColor=$00FF6E6E
+Net34=NetName=NetR34_2|NetColor=$00FF6E6E
+Net35=NetName=NetR35_2|NetColor=$00FF6E6E
+Net36=NetName=NetR36_2|NetColor=$00FF6E6E
+Net37=NetName=NetR37_2|NetColor=$00FF6E6E
+Net38=NetName=NetR38_2|NetColor=$00FF6E6E
+Net39=NetName=NetR39_2|NetColor=$00FF6E6E
+Net40=NetName=NetR4_1|NetColor=$006E6EFF
+Net41=NetName=NetR4_3|NetColor=$006E6EFF
+Net42=NetName=NetR50_2|NetColor=$00FFFF6E
+Net43=NetName=NetU4_6|NetColor=$00FFFF6E
+Net44=NetName=Offset 1|NetColor=$0000BE00
+Net45=NetName=Offset 2|NetColor=$0000BE00
+Net46=NetName=PWM1|NetColor=$006E6EFF
+Net47=NetName=PWM2|NetColor=$006E6EFF
+Net48=NetName=PWM3|NetColor=$00FFFF6E
+Net49=NetName=RH|NetColor=$006EFF6E
+Net50=NetName=RL|NetColor=$000083FD
+Net51=NetName=RW|NetColor=$006EFF6E
+Net52=NetName=Salida_AO|NetColor=$0000BE00
+Net53=NetName=Salida_Dac|NetColor=$00FF6E6E
 
 [Comparison Options]
 ComparisonOptions0=Kind=Net|MinPercent=75|MinMatch=3|ShowMatch=0|UseName=-1|InclAllRules=0
