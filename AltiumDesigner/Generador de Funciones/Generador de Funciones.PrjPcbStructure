@@ -1,4 +1,5 @@
 Record=TopLevelDocument|FileName=main.SchDoc|SheetNumber=1
 Record=SheetSymbol|SourceDocument=main.SchDoc|Designator=Alimentacion|SchDesignator=Alimentacion|FileName=Alimentacion.SchDoc|SheetNumber=2|SymbolType=Normal|RawFileName=Alimentacion.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
 Record=SheetSymbol|SourceDocument=main.SchDoc|Designator=Control|SchDesignator=Control|FileName=Control.SchDoc|SheetNumber=3|SymbolType=Normal|RawFileName=Control.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
+Record=SheetSymbol|SourceDocument=main.SchDoc|Designator=Perifericos|SchDesignator=Perifericos|FileName=Perifericos.SchDoc|SheetNumber=5|SymbolType=Normal|RawFileName=Perifericos.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 
 Record=SheetSymbol|SourceDocument=main.SchDoc|Designator=Salida|SchDesignator=Salida|FileName=Salida.SchDoc|SheetNumber=4|SymbolType=Normal|RawFileName=Salida.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol|RevisionGUID= |ItemGUID= |VaultGUID= 

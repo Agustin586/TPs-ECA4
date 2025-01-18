@@ -32,6 +32,7 @@
 #include "qpc.h" // QP/C real-time embedded framework
 #include "dpp.h" // DPP Application interface
 #include "bsp.h" // Board Support Package
+#include "mef_awg.h"
 
 // RP2040 Includes ===========================================================
 #include "pico/stdlib.h"
@@ -39,12 +40,13 @@
 
 Q_DEFINE_THIS_FILE // define the name of this file for assertions
 
-    // "RTOS-aware" interrupt priorities for FreeRTOS on ARM Cortex-M, NOTE1
+// "RTOS-aware" interrupt priorities for FreeRTOS on ARM Cortex-M, NOTE1
 #define RTOS_AWARE_ISR_CMSIS_PRI \
     (configMAX_SYSCALL_INTERRUPT_PRIORITY >> (8 - __NVIC_PRIO_BITS))
 
-// Freertos declared ========================================================
-void init_task(void);
+    // Freertos declared ========================================================
+    void
+    init_task(void);
 void vTaskBlink(void *pvParameters);
 
 //============================================================================
@@ -58,6 +60,8 @@ Q_NORETURN Q_onError(char const *const module, int_t const id)
     Q_UNUSED_PAR(module);
     Q_UNUSED_PAR(id);
     QS_ASSERTION(module, id, 10000U); // report assertion to QS
+
+    printf("Failed: Fallo general.\n");
 
 #ifndef NDEBUG
     // light up LED
@@ -239,18 +243,32 @@ void BSP_start(void)
                   blinkyStackSto,         // stack storage
                   sizeof(blinkyStackSto), // stack size [bytes]
                   (void *)0);             // no initialization param
+
+    // Inicializa objeto activo del awg
+    static QEvt const *awgQueueSto[10];
+    static StackType_t awgStackSto[256]; // Pila para la tarea (ajusta el tamaño según sea necesario)
+
+    Awg_ctor();
+
+    QACTIVE_START(AO_Awg,
+                  Q_PRIO(2U, 0U),      // QP prio. of the AO
+                  awgQueueSto,         // event queue storage
+                  Q_DIM(awgQueueSto),  // queue length [events]
+                  awgStackSto,         // stack storage
+                  sizeof(awgStackSto), // stack size [bytes]
+                  (void *)0);          // no initialization param
 }
 //............................................................................
 void BSP_ledOn(void)
 {
-    printf("Led ON\n");
+    // printf("Led ON\n");
     // gpio_put(25,!gpio_get(25));
     // gpio_put(25, 1);
 }
 //............................................................................
 void BSP_ledOff(void)
 {
-    printf("Led OFF\n");
+    // printf("Led OFF\n");
     // gpio_put(25,!gpio_get(25));
     // gpio_put(25, 0);
 }
