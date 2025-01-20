@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [Generador de Funciones.PrjPcb]
+   Generated File[PCB_Awg-Plated.TXT]
+   Generated File[PCB_Awg.LDP]
+   Generated File[PCB_Awg.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 18:53:26 On 19/1/2025

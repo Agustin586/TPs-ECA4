@@ -1,0 +1,7 @@
+Change Component Comment : Designator=P2 Old Comment=61300411121 New Comment=Nextion Display
+Change Net Name : Old Net Name=NetP2_2 New Net Name=TX
+Change Net Name : Old Net Name=NetP2_3 New Net Name=RX
+Change Net Name : Old Net Name=NetR31_1 New Net Name=MULT/START
+Change Net Name : Old Net Name=NetR32_1 New Net Name=AVANCE
+Change Net Name : Old Net Name=NetR33_1 New Net Name=ATRAS
+Change Net Name : Old Net Name=NetSW1_B New Net Name=RUN

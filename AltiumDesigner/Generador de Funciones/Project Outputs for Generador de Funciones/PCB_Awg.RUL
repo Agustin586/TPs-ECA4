@@ -1,0 +1,6 @@
+DRC Rules Export File for PCB: C:\Users\aguat\Documents\GitHub\TPs-ECA4\AltiumDesigner\Generador de Funciones\PCB_Awg.PcbDoc
+RuleKind=Width|RuleName=Schematic Width Constraint|Scope=Board|Minimum=19.69
+RuleKind=SolderMaskExpansion|RuleName=SolderMaskExpansion|Scope=Board|Minimum=4.00
+RuleKind=Width|RuleName=Width|Scope=Board|Minimum=11.81
+RuleKind=Clearance|RuleName=Clearance|Scope=Board|Minimum=19.69
+RuleKind=ShortCircuit|RuleName=ShortCircuit|Scope=Board|Allowed=0
