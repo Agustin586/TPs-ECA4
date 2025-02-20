@@ -25,6 +25,9 @@
 // Archivo de potenciometro
 #include "X9C103S.h"
 
+// PWM
+#include "hardware/pwm.h"
+
 #define OUT_PIN_NUMBER 8
 #define BUFFER_DEPTH 4096
 #define NPINS 8
@@ -58,10 +61,14 @@
 // Parametros maximos
 #define FREQ_MAX 1500000
 #define FREQ_MIN 1
-#define AMPLITUD_SALIDA_MAX 6
+#define AMPLITUD_SALIDA_MAX 5
 #define AMPLITUD_SALIDA_MIN 1.67
-#define OFFSET_SALIDA_MAX 6
+#define OFFSET_SALIDA_MAX 5
 #define OFFSET_SALIDA_MIN 0
+
+// Pines de PWM
+#define PWM3_GPIO 18  // GPIO para el PWM
+#define PWM_FREQ 10000 // Frecuencia en Hz
 
 // Definimos los multiplicadores de frecuencia
 typedef enum
@@ -490,7 +497,7 @@ extern void awg_Amp(void)
             amp_new -= 0.01;
     }
 
-    // // printf("Amplitud: %.2f.\n", amp_new);
+    // printf("Amplitud: %.2f.\n", amp_new);
 
     // Limites
     if (amp_new > AMPLITUD_SALIDA_MAX)
@@ -500,9 +507,6 @@ extern void awg_Amp(void)
 
     // Carga la informacion
     config_amplitude(&signal_ch1, amp_new);
-
-    // Cargamos la informacion en la pantalla
-    // display_amp();
 
     // printf("Amplitud: %.2f.\n", signal_ch1.amplitude);
 
@@ -518,21 +522,21 @@ extern void awg_Offset(void)
     // Detecta el evento del offset
     if (selector.direccion == SENTIDO_HORARIO)
     {
-        if (selector.multOffset == MULT_OFFSET_X_1)
-            offset_new += 1;
-        else if (selector.multOffset == MULT_OFFSET_X_0_1)
-            offset_new += 0.1;
-        else if (selector.multOffset == MULT_OFFSET_X_0_01)
-            offset_new += 0.01;
+        // if (selector.multOffset == MULT_OFFSET_X_1)
+        //     offset_new += 1;
+        // else if (selector.multOffset == MULT_OFFSET_X_0_1)
+        //     offset_new += 0.1;
+        // else if (selector.multOffset == MULT_OFFSET_X_0_01)
+        //     offset_new += 0.01;
     }
     else if (selector.direccion == SENTIDO_ANTIHORARIO)
     {
-        if (selector.multOffset == MULT_OFFSET_X_1)
-            offset_new -= 1;
-        else if (selector.multOffset == MULT_OFFSET_X_0_1)
-            offset_new -= 0.1;
-        else if (selector.multOffset == MULT_OFFSET_X_0_01)
-            offset_new -= 0.01;
+        // if (selector.multOffset == MULT_OFFSET_X_1)
+        //     offset_new -= 1;
+        // else if (selector.multOffset == MULT_OFFSET_X_0_1)
+        //     offset_new -= 0.1;
+        // else if (selector.multOffset == MULT_OFFSET_X_0_01)
+        //     offset_new -= 0.01;
     }
 
     // Limites
@@ -568,11 +572,30 @@ extern void awg_start(void)
 {
     // printf("Estado: salida.\n");
 
-    select_freq(&signal_ch1); // Configura la frecuencia del SM.
+    /* Configuramos el pote digital ...............................*/
+#define R_DAC 1500.0
+#define V_DAC 3.3
 
+    float R_pote;
+
+    R_pote = (signal_ch1.amplitude * R_DAC) / V_DAC;
+    X9C103S_set_resistance(&potenciometro, R_pote);
+    //...............................................................
+
+    /* Configuramos la frecuencia en el PIO */
+    select_freq(&signal_ch1);
+
+    /* Generamos el vector de la funcion */
     generate_signal(&signal_ch1);
 
+    /* Habilitamos la señal al PIO */
     pio_sm_set_enabled(pio, sm, true);
+
+    /* Habilito el pwm */
+    uint slice_num = pwm_gpio_to_slice_num(PWM3_GPIO);
+    uint chan = pwm_gpio_to_channel(PWM3_GPIO);
+    // pwm_set_chan_level(slice_num, chan, 65530);
+    pwm_set_enabled(slice_num, true);
 
     return;
 }
@@ -742,12 +765,40 @@ extern int get_funcion(void)
 static void prvTaskRtos_awg(void *pvParameters)
 {
     /* Configura el pote digital. */
-    // X9C103S_init(&potenciometro);
-    // X9C103S_set_resistance(&potenciometro, 1000.0);   // Setea en la mitad
+    X9C103S_init(&potenciometro);
+
+    float resistencia = 1000;
+
+    vTaskDelay(pdMS_TO_TICKS(1500));
+
+    X9C103S_set_resistance(&potenciometro, resistencia);
+    printf("Pos. actual: %d\n\r", potenciometro.position);
 
     for (;;)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(1500));
+
+        // resistencia += 1000;
+        // if (resistencia > 10000)
+        //     resistencia = 1000;
+
+        // X9C103S_set_resistance(&potenciometro, resistencia);
+        // if (!getState_Pulsador(MULTIPLICADOR_PIN))
+        // {
+        //     X9C103S_incrementar();
+        //     while (!getState_Pulsador(MULTIPLICADOR_PIN))
+        //     {
+        //         vTaskDelay(pdMS_TO_TICKS(30));
+        //     }
+        // }
+        // if (!getState_Pulsador(ATRAS_PIN))
+        // {
+        //     X9C103S_decrementar();
+        //     while (!getState_Pulsador(ATRAS_PIN))
+        //     {
+        //         vTaskDelay(pdMS_TO_TICKS(30));
+        //     }
+        // }
     }
 
     vTaskDelete(NULL);
@@ -862,7 +913,7 @@ static void prvTaskRtos_pulsadores(void *pvParameters)
 
 static void init_task(void)
 {
-    BaseType_t status;
+    BaseType_t status = 0;
 
     status = xTaskCreate(prvTaskRtos_awg, "Task awg", configMINIMAL_STACK_SIZE, NULL, TASKRTOS_AWG_PRIORITY, NULL);
 
@@ -1163,6 +1214,29 @@ static void init_pins(void)
     // Configura las interrupciones en ambos pines
     gpio_set_irq_enabled_with_callback(ENCODER_PIN_A, GPIO_IRQ_EDGE_FALL, true, &encoder_isrA);
     // gpio_set_irq_enabled_with_callback(ENCODER_PIN_B, GPIO_IRQ_EDGE_FALL, true, &encoder_isrB);
+
+    // PWM
+    // Obtener el slice de PWM del GPIO
+    uint slice_num = pwm_gpio_to_slice_num(PWM3_GPIO);
+    uint chan = pwm_gpio_to_channel(PWM3_GPIO);
+
+    // Configurar el GPIO para PWM
+    gpio_set_function(PWM3_GPIO, GPIO_FUNC_PWM);
+
+    // Calcular divisor y top
+    uint32_t clock_freq = clock_get_hz(clk_sys); // 125 MHz por defecto
+    uint32_t divider16 = clock_freq / (PWM_FREQ * 4096); // Divisor con precisión de 4 bits
+    uint32_t top = (clock_freq / (divider16 * PWM_FREQ)) - 1;
+
+    // Configurar el divisor y el TOP
+    pwm_set_clkdiv(slice_num, divider16 / 16.0);
+    pwm_set_wrap(slice_num, top);
+
+    // Ajustar ciclo de trabajo (Duty Cycle 50%)
+    pwm_set_chan_level(slice_num, chan, top);
+
+    // Habilitar el PWM
+    pwm_set_enabled(slice_num, true);
 
     return;
 }
