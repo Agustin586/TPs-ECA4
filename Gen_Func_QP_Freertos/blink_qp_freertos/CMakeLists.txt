@@ -1,30 +1,30 @@
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
-# ====================================================================================
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
+# # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+# if(WIN32)
+#     set(USERHOME $ENV{USERPROFILE})
+# else()
+#     set(USERHOME $ENV{HOME})
+# endif()
+# set(sdkVersion 2.0.0)
+# set(toolchainVersion 13_2_Rel1)
+# set(picotoolVersion 2.0.0)
+# set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+# if (EXISTS ${picoVscode})
+#     include(${picoVscode})
+# endif()
+# # ====================================================================================
+# # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+# if(WIN32)
+#     set(USERHOME $ENV{USERPROFILE})
+# else()
+#     set(USERHOME $ENV{HOME})
+# endif()
+# set(sdkVersion 2.0.0)
+# set(toolchainVersion 13_2_Rel1)
+# set(picotoolVersion 2.0.0)
+# set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+# if (EXISTS ${picoVscode})
+#     include(${picoVscode})
+# endif()
 # ====================================================================================
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
@@ -65,6 +65,7 @@ target_include_directories(pico-freertos PRIVATE
     ${PROJECT_SOURCE_DIR}/qpc/ports
     ${PROJECT_SOURCE_DIR}/qpc/qm
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/config.h
 )
 
 target_link_libraries(pico-freertos PRIVATE
@@ -73,16 +74,16 @@ target_link_libraries(pico-freertos PRIVATE
     FreeRTOS-Kernel-Heap4
     # hardware_spi
     # hardware_i2c
+    hardware_gpio
     hardware_dma
     hardware_pio
-    hardware_gpio
     hardware_irq
     hardware_pwm
     hardware_uart
     # hardware_interp
     # hardware_timer
     # hardware_watchdog
-    # hardware_clocks
+    hardware_clocks
 )
 
 target_compile_options(pico-freertos PRIVATE -Wall)

@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "awg.h"
+#include "signal.h"
 
 // Definición de pines y UART
 #define UART_ID uart0
@@ -157,7 +158,7 @@ static void drawSineWave(float amplitude, float frequency, float offset)
     
     #define OFFSET_MAX 46
 
-    uint8_t scaledAmplitude = scaleAmplitude(amplitude);
+    // uint8_t scaledAmplitude = scaleAmplitude(amplitude);
     uint16_t samples = MAX_SAMPLES;
 
     if (samples > MAX_SAMPLES)
