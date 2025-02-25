@@ -124,10 +124,16 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
    <statechart properties="0x00">
     <!--${AOs_Awg::Awg::SM::initial}-->
     <initial target="../1">
-     <action brief="init">awg_config();
+     <action brief="init">// Display
+display_init();
+
+// Etapas
+awg_config();
+
+// Temporizador
 QTimeEvt_armX(&amp;me-&gt;time3segEvt,
 7000, 0);</action>
-     <initial_glyph conn="19,2,5,0,28,3">
+     <initial_glyph conn="20,3,5,0,27,2">
       <action box="0,-2,11,2"/>
      </initial_glyph>
     </initial>
@@ -135,20 +141,24 @@ QTimeEvt_armX(&amp;me-&gt;time3segEvt,
     <state name="Reset">
      <!--${AOs_Awg::Awg::SM::Reset::INIT}-->
      <tran trig="INIT" target="../../2">
-      <action brief="configura display">QTimeEvt_disarm(&amp;me-&gt;time3segEvt);
+      <action brief="configura display">// Temporizador
+QTimeEvt_disarm(&amp;me-&gt;time3segEvt);
+
+// Display
+drawWaveform(0, 10, 1000, 0);
 display_func();
 display_freq();
 display_amp();
 display_offset();
-display_setMultiplicadorText(&quot;x1 Hz&quot;);
-drawWaveform(0, 10, 1000.0, 0);</action>
+display_setMultiplicadorText(&quot;x1 Hz&quot;);</action>
       <tran_glyph conn="47,14,2,0,5">
        <action box="1,1,19,2"/>
       </tran_glyph>
      </tran>
      <!--${AOs_Awg::Awg::SM::Reset::TIMER_3SEG}-->
      <tran trig="TIMER_3SEG">
-      <action brief="resetea variables">awg_reset();</action>
+      <action brief="resetea variables">// Mef
+awg_reset();    // Lanza el evento INIT</action>
       <tran_glyph conn="37,12,3,-1,17">
        <action box="0,-4,15,4"/>
       </tran_glyph>
@@ -159,7 +169,7 @@ drawWaveform(0, 10, 1000.0, 0);</action>
     <state name="Configuracion">
      <!--${AOs_Awg::Awg::SM::Configuracion::initial}-->
      <initial target="../1">
-      <action brief="setea forma de onda">//drawWaveform(0, 10, 1000.0, 0);</action>
+      <action brief="setea forma de onda"/>
       <initial_glyph conn="14,25,5,0,6,2">
        <action box="0,-3,18,2"/>
       </initial_glyph>
@@ -249,7 +259,10 @@ display_setMultiplicadorText(&quot;x1 Vp&quot;);</exit>
       </tran>
       <!--${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}-->
       <tran trig="ENCODER">
-       <action brief="mod amplitud">awg_Amp();
+       <action brief="mod amplitud">// Señal
+awg_Amp();
+
+// Display
 display_amp();</action>
        <tran_glyph conn="64,36,3,-1,18">
         <action box="0,-4,17,4"/>

@@ -175,7 +175,13 @@ QEvt const  Awg_stop_evt = QEVT_INITIALIZER(STOP_SIG);
 //${AOs_Awg::Awg::SM} ........................................................
 static QState Awg_initial(Awg * const me, void const * const par) {
     //${AOs_Awg::Awg::SM::initial}
+    // Display
+    display_init();
+
+    // Etapas
     awg_config();
+
+    // Temporizador
     QTimeEvt_armX(&me->time3segEvt,
     7000, 0);
     return Q_TRAN(&Awg_Reset);
@@ -187,19 +193,23 @@ static QState Awg_Reset(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Reset::INIT}
         case INIT_SIG: {
+            // Temporizador
             QTimeEvt_disarm(&me->time3segEvt);
+
+            // Display
+            drawWaveform(0, 10, 1000, 0);
             display_func();
             display_freq();
             display_amp();
             display_offset();
             display_setMultiplicadorText("x1 Hz");
-            drawWaveform(0, 10, 1000.0, 0);
             status_ = Q_TRAN(&Awg_Configuracion);
             break;
         }
         //${AOs_Awg::Awg::SM::Reset::TIMER_3SEG}
         case TIMER_3SEG_SIG: {
-            awg_reset();
+            // Mef
+            awg_reset();    // Lanza el evento INIT
             status_ = Q_HANDLED();
             break;
         }
@@ -217,7 +227,6 @@ static QState Awg_Configuracion(Awg * const me, QEvt const * const e) {
     switch (e->sig) {
         //${AOs_Awg::Awg::SM::Configuracion::initial}
         case Q_INIT_SIG: {
-            //drawWaveform(0, 10, 1000.0, 0);
             status_ = Q_TRAN(&Awg_Tipo_Func);
             break;
         }
@@ -346,7 +355,10 @@ static QState Awg_Amplitud(Awg * const me, QEvt const * const e) {
         }
         //${AOs_Awg::Awg::SM::Configuracion::Amplitud::ENCODER}
         case ENCODER_SIG: {
+            // Señal
             awg_Amp();
+
+            // Display
             display_amp();
             status_ = Q_HANDLED();
             break;

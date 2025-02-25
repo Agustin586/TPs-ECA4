@@ -149,6 +149,9 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
 {
     (void)xTask;
     (void)pcTaskName;
+    
+    printf("ERROR: Stack overflow en tarea: %s\n", pcTaskName);
+
     Q_ERROR();
 }
 //............................................................................
@@ -246,7 +249,7 @@ void BSP_start(void)
 
     // Inicializa objeto activo del awg
     static QEvt const *awgQueueSto[10];
-    static StackType_t awgStackSto[256]; // Pila para la tarea (ajusta el tamaño según sea necesario)
+    static StackType_t awgStackSto[2048]; // Pila para la tarea (ajusta el tamaño según sea necesario)
 
     Awg_ctor();
 
