@@ -62,8 +62,16 @@ extern void awg_config(void)
     // EtapaAmp_init(&Gen_Funcion.EtapaAmp);
 
     /* Inicializa la etapa de offset */
+    // Desacople
     Gen_Funcion.EtapaOffset.Desacople.gpio_pin = DESACOPLE_GPIO;
     Gen_Funcion.EtapaOffset.Desacople.freq = PWM_FREQ;
+    // Offset positivo
+    Gen_Funcion.EtapaOffset.OffsetPost.gpio_pin = OFFSET_NEGT;
+    Gen_Funcion.EtapaOffset.OffsetPost.freq = PWM_FREQ;
+    // Offset negativo
+    Gen_Funcion.EtapaOffset.offsetNegt.gpio_pin = OFFSET_POST;
+    Gen_Funcion.EtapaOffset.offsetNegt.freq = PWM_FREQ;
+
     EtapaOffset_init(&Gen_Funcion.EtapaOffset);
 
     return;
@@ -191,39 +199,31 @@ extern void awg_Amp(void)
 /*-------------------------------------------------------------------------------------------*/
 extern void awg_Offset(void)
 {
-    // float offset_new = signal_ch1.offset;
-
     // Detecta el evento del offset
-    // if (selector.direccion == SENTIDO_HORARIO)
-    // {
-    //     // if (selector.multOffset == MULT_OFFSET_X_1)
-    //     //     offset_new += 1;
-    //     // else if (selector.multOffset == MULT_OFFSET_X_0_1)
-    //     //     offset_new += 0.1;
-    //     // else if (selector.multOffset == MULT_OFFSET_X_0_01)
-    //     //     offset_new += 0.01;
-    // }
-    // else if (selector.direccion == SENTIDO_ANTIHORARIO)
-    // {
-    //     // if (selector.multOffset == MULT_OFFSET_X_1)
-    //     //     offset_new -= 1;
-    //     // else if (selector.multOffset == MULT_OFFSET_X_0_1)
-    //     //     offset_new -= 0.1;
-    //     // else if (selector.multOffset == MULT_OFFSET_X_0_01)
-    //     //     offset_new -= 0.01;
-    // }
+    if (Gen_Funcion.DatosPerifericos.encoder.direccion == SENTIDO_HORARIO)
+    {
+        if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_1)
+            Gen_Funcion.EtapaOffset.offset += 1;
+        else if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_0_1)
+            Gen_Funcion.EtapaOffset.offset += 0.1;
+        else if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_0_01)
+            Gen_Funcion.EtapaOffset.offset += 0.01;
+    }
+    else if (Gen_Funcion.DatosPerifericos.encoder.direccion == SENTIDO_ANTIHORARIO)
+    {
+        if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_1)
+            Gen_Funcion.EtapaOffset.offset -= 1;
+        else if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_0_1)
+            Gen_Funcion.EtapaOffset.offset -= 0.1;
+        else if (Gen_Funcion.DatosPerifericos.encoder.multOffset == MULT_OFFSET_X_0_01)
+            Gen_Funcion.EtapaOffset.offset -= 0.01;
+    }
 
     // Limites
-    // if (offset_new > OFFSET_SALIDA_MAX)
-    //     offset_new = OFFSET_SALIDA_MAX;
-    // else if (offset_new < OFFSET_SALIDA_MIN)
-    //     offset_new = OFFSET_SALIDA_MIN;
-
-    // Carga la informacion
-    // signal_config_offset(&signal_ch1, offset_new);
-
-    // Cargamos la informacion en la pantalla
-    // display_offset();
+    if (Gen_Funcion.EtapaOffset.offset > OFFSET_SALIDA_MAX)
+        Gen_Funcion.EtapaOffset.offset = OFFSET_SALIDA_MAX;
+    else if (Gen_Funcion.EtapaOffset.offset < OFFSET_SALIDA_MIN)
+        Gen_Funcion.EtapaOffset.offset = OFFSET_SALIDA_MIN;
 
     return;
 }
@@ -240,7 +240,7 @@ extern void awg_start(void)
     /* Habilito la etapa de amplificacion */
     taskENTER_CRITICAL();
     EtapaAmp_enable(&Gen_Funcion.EtapaAmp);
-    
+
     /* Habilito la etapa de señal */
     EtapaDacR2R_enable(&Gen_Funcion.EtapaDac);
     taskEXIT_CRITICAL();
@@ -248,6 +248,7 @@ extern void awg_start(void)
     /* Habilito la etapa de offset */
     Gen_Funcion.EtapaOffset.amp_vp = Gen_Funcion.EtapaAmp.amp_vp;
     EtapaOffset_setDesacople(&Gen_Funcion.EtapaOffset);
+    EtapaOffset_setOffsetSignal(&Gen_Funcion.EtapaOffset);
 
     return;
 }
@@ -295,6 +296,7 @@ extern void awg_stop(void)
 
     /* Deshabilito la etapa de offset */
     EtapaOffset_clearDesacople(&Gen_Funcion.EtapaOffset);
+    EtapaOffset_clearOffsetSignal(&Gen_Funcion.EtapaOffset);
 
     return;
 }
@@ -363,18 +365,18 @@ extern void awg_multiplicador(uint8_t tipo)
         break;
     case MULTIPLICADOR_OFFSET:
         Gen_Funcion.DatosPerifericos.encoder.multOffset += 1;
-        if (Gen_Funcion.DatosPerifericos.encoder.multOffset > MULT_AMP_X_0_01)
-            Gen_Funcion.DatosPerifericos.encoder.multOffset = MULT_AMP_X_1;
+        if (Gen_Funcion.DatosPerifericos.encoder.multOffset > MULT_OFFSET_X_0_01)
+            Gen_Funcion.DatosPerifericos.encoder.multOffset = MULT_OFFSET_X_1;
 
         switch (Gen_Funcion.DatosPerifericos.encoder.multOffset)
         {
-        case MULT_AMP_X_1:
+        case MULT_OFFSET_X_1:
             display_setMultiplicadorText("x1 Vp");
             break;
-        case MULT_AMP_X_0_1:
+        case MULT_OFFSET_X_0_1:
             display_setMultiplicadorText("x0.1 Vp");
             break;
-        case MULT_AMP_X_0_01:
+        case MULT_OFFSET_X_0_01:
             display_setMultiplicadorText("x0.01 Vp");
             break;
         default:
@@ -406,7 +408,8 @@ extern float get_amplitude(void)
 /*-------------------------------------------------------------------------------------------*/
 extern float get_offset(void)
 {
-    return Gen_Funcion.EtapaDac.signal.offset; // Va a estar mal porque no corresponde el objeto
+    // return Gen_Funcion.EtapaDac.signal.offset; // Va a estar mal porque no corresponde el objeto
+    return Gen_Funcion.EtapaOffset.offset;
 }
 /*-------------------------------------------------------------------------------------------*/
 extern int get_funcion(void)

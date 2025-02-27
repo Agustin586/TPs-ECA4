@@ -10,8 +10,8 @@ extern void EtapaOffset_init(offset_t *offsetObj)
 
     /* Iniciamos los filtros */
     filtroRC_init(&(offsetObj->Desacople));
-    // filtroRC_init(offsetObj->OffsetPost, offsetObj->OffsetPost.gpio_pin, offsetObj->OffsetPost.freq);
-    // filtroRC_init(offsetObj->offsetNegt, offsetObj->offsetNegt.gpio_pin, offsetObj->offsetNegt.freq);
+    filtroRC_init(&(offsetObj->OffsetPost));
+    filtroRC_init(&(offsetObj->offsetNegt));
 
     return;
 }
@@ -21,8 +21,6 @@ extern void EtapaOffset_setDesacople(offset_t *offsetObj)
 
     filtroRC_setValMedio(&(offsetObj->Desacople), val_medio);
     filtroRC_enable(&(offsetObj->Desacople));
-
-    // printf("Val medio: %.2f",val_medio);
 
     return;
 }
@@ -44,7 +42,7 @@ extern void EtapaOffset_setOffsetSignal(offset_t *offsetObj)
     }
     else if (offsetObj->offset < 0)
     {
-        filtroRC_setValMedio(&(offsetObj->offsetNegt), val_medio);
+        filtroRC_setValMedio(&(offsetObj->offsetNegt), -val_medio);
         filtroRC_disable(&(offsetObj->OffsetPost));
         filtroRC_enable(&(offsetObj->offsetNegt));
     }

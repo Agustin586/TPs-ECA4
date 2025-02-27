@@ -13,7 +13,7 @@
 #define AMPLITUD_SALIDA_MAX 5
 #define AMPLITUD_SALIDA_MIN 1
 #define OFFSET_SALIDA_MAX 5
-#define OFFSET_SALIDA_MIN 0
+#define OFFSET_SALIDA_MIN -5
 // Conversion de offset
 #define OFFSET_MAX_CUENTAS 127
 #define OFFSET_MIN_CUENTAS 0
@@ -30,7 +30,9 @@
 #define SENTIDO_ANTIHORARIO -1
 // Pines de PWM
 #define DESACOPLE_GPIO 18 // GPIO para el PWM
-#define PWM_FREQ 100000    // Frecuencia en Hz
+#define OFFSET_POST 16
+#define OFFSET_NEGT 17
+#define PWM_FREQ 80000    // Frecuencia en Hz
 
 // Definimos los multiplicadores de frecuencia
 typedef enum

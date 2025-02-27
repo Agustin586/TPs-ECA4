@@ -18,7 +18,7 @@ typedef struct
     /**
      * @brief Multiplicador de offset
      */
-    MultAmp_t multOffset;
+    MultOffset_t multOffset;
     /**
      * @brief Contador del encoder
      */
